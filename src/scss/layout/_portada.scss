@@ -1,0 +1,31 @@
+@use 'base/variables' as v;
+@use 'base/mixins' as m;
+@use 'sass:color';
+
+.portada {
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  min-height: 30rem;
+  height: fit-content;
+  padding: 2rem;
+  position: relative;
+  
+  @include m.tablet {
+    display: none;
+  }
+
+  .overlay {
+    position: absolute;
+    background: linear-gradient(
+      270deg,
+      rgba(v.$azul, 60%),
+      rgba(color.adjust(v.$negroAzul,$lightness: -20%), 85%)
+    );
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+  }
+}
