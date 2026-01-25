@@ -27,8 +27,8 @@ export function dev() {
 export function build(done) {
   js(done)
   css(done)
-  //dev(done)
+  dev(done)
 }
 
-//export default series(js, css, dev, build);
+//export default series(js, css, dev);
 export default build;
