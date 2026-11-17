@@ -1,2 +1,6 @@
-@forward 'base';
-@forward 'layout';
+// Soluciones en Acero — estilos principales
+@use 'base/normalize';
+@use 'base/globales';
+@use 'componentes';
+@use 'layout';
+@use 'paginas';

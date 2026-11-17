@@ -1,54 +1,35 @@
 @use 'variables' as v;
 
-@mixin telefono {
-  @media (min-width: v.$telefono) {
-    @content;
-  }
-}
+@mixin telefono { @media (min-width: v.$telefono) { @content; } }
+@mixin tablet { @media (min-width: v.$tablet) { @content; } }
+@mixin escritorio { @media (min-width: v.$escritorio) { @content; } }
+@mixin escritorio-xl { @media (min-width: v.$escritorio-xl) { @content; } }
+@mixin solo-movil { @media (max-width: (v.$tablet - 1px)) { @content; } }
 
-@mixin tablet {
-  @media (min-width: v.$tablet) {
-    @content;
-  }
-}
-
-@mixin deskop {
-  @media (min-width: v.$deskop) {
-    @content;
-  }
-}
-
-@mixin deskopXL {
-  @media (min-width: v.$deskopXL) {
-    @content;
-  }
-}
-
-@mixin contenedor {
-  width: 90%;
-  max-width: 120rem;
-  margin: 0 auto;
-}
-
-
-@mixin grid($columnas: 1, $separacion: 1rem) {
+@mixin grid($columnas: 1, $separacion: 2rem) {
   display: grid;
-  grid-template-columns: repeat($columnas, 1fr);
+  grid-template-columns: repeat($columnas, minmax(0, 1fr));
   gap: $separacion;
 }
 
-
-@mixin flex-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+// Esquinas recortadas tipo placa de acero
+@mixin chaflan($tam: v.$chaflan) {
+  clip-path: polygon($tam 0, 100% 0, 100% calc(100% - #{$tam}), calc(100% - #{$tam}) 100%, 0 100%, 0 $tam);
 }
 
-@mixin flex-row {
-  display: flex;
-  align-items: center;
+// Textura sutil de placa diamantada
+@mixin placa-diamantada($alfa: 0.035) {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, $alfa) 0 2px, transparent 2px 22px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, $alfa) 0 2px, transparent 2px 22px);
 }
 
+// Panel claro para imagenes de producto (fondo blanco con cotas)
+@mixin panel-producto {
+  background:
+    radial-gradient(circle at 50% 40%, #ffffff 0%, var(--placa) 70%);
+}
 
-
+@mixin reducir-movimiento {
+  @media (prefers-reduced-motion: reduce) { @content; }
+}

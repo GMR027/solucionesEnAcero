@@ -1,0 +1,26 @@
+Options -MultiViews -Indexes
+RewriteEngine On
+
+# URLs del sitio estatico anterior -> rutas nuevas
+RewriteRule ^index\.html$ / [R=301,L]
+RewriteRule ^src/pages/angulo\.html$ /productos/registros-angulo [R=301,L]
+RewriteRule ^src/pages/solera\.html$ /productos/registros-solera [R=301,L]
+RewriteRule ^src/pages/tapas\.html$ /productos/tapas-metalicas [R=301,L]
+RewriteRule ^src/pages/bases\.html$ /productos/bases [R=301,L]
+RewriteRule ^src/pages/distribuidores\.html$ /distribuidores [R=301,L]
+
+# Todo lo que no sea un archivo real pasa por el front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
+  ExpiresByType video/webm "access plus 30 days"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
