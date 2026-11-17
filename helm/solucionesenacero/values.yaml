@@ -1,0 +1,50 @@
+# ===========================================================================
+# values.yaml — valores por defecto del chart solucionesenacero
+#
+# Los secretos reales van en values.local.yaml (NO se sube a git).
+# Plantilla: values.local.yaml.example. Deploy: ./deploy.sh
+# ===========================================================================
+
+# Una sola replica: las sesiones PHP y el limite de intentos de login viven
+# en el disco del pod. Para escalar, mover sesiones a Redis/BD primero.
+replicaCount: 1
+
+image:
+  repository: gmr27/solucionesenacero
+  tag: "1"               # deploy.sh lo sobrescribe con --set
+  pullPolicy: IfNotPresent
+
+app:
+  host: solucionesenacero.iguzman.com.mx
+  entorno: produccion
+  # Id de "Soluciones en Acero" en la tabla empresas de cotizaciones
+  empresaId: "1"
+
+# Base de datos: la de cotizaciones (otro namespace), con el usuario de
+# permisos minimos que crea cotizaciones/scripts/crear_usuario_portal.sh
+db:
+  host: mysql.cotizaciones.svc.cluster.local
+  port: "3306"
+  name: cotizaciones
+  user: portal_soluciones
+
+# Servicio interno de cotizaciones que sirve /portal/entregas/foto
+cotizaciones:
+  url: http://cotizaciones.cotizaciones.svc.cluster.local
+
+# Credenciales — SOBRESCRIBIR en values.local.yaml
+secrets:
+  dbPassword: ""
+  portalFotosSecreto: ""   # mismo valor que secrets.portalFotosSecreto en cotizaciones
+
+ingress:
+  className: public
+  clusterIssuer: letsencrypt-prod
+  proxyBodySize: 2m
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 96Mi
+  limits:
+    memory: 384Mi

@@ -74,6 +74,48 @@ Seguridad: CSRF en todos los POST, cookie de sesion httponly/SameSite, `session_
 huella de contrasena (cambiarla cierra las demas sesiones), limite de 5 intentos de login por IP y correo
 cada 15 min, y toda consulta de pedidos filtra por `cliente_id` y `empresa_id`.
 
+## Despliegue (cluster, https://solucionesenacero.iguzman.com.mx)
+
+Chart en `helm/solucionesenacero` (namespace `solucionesenacero`, ingress `public`, TLS `letsencrypt-prod`).
+El sitio no tiene MySQL propio: usa la BD de cotizaciones por `mysql.cotizaciones.svc.cluster.local`
+y pide las fotos a `cotizaciones.cotizaciones.svc.cluster.local`.
+
+### Primera vez
+
+1. **Generar los dos secretos** (guardalos en tu gestor de contrasenas):
+   ```bash
+   openssl rand -hex 24   # contrasena del usuario MySQL portal_soluciones
+   openssl rand -hex 32   # secreto de fotos (compartido con cotizaciones)
+   ```
+2. **Cotizaciones**: en `cotizaciones/helm/cotizaciones/values.local.yaml` agregar
+   `secrets.portalFotosSecreto: "<secreto de fotos>"` y desplegar la rama `portal-fotos-firmadas`
+   con su `./deploy.sh`.
+3. **Usuario MySQL** (desde el repo de cotizaciones):
+   ```bash
+   PORTAL_DB_PASSWORD='<contrasena MySQL>' \
+   MYSQL_CMD='kubectl -n cotizaciones exec -i deploy/mysql -- sh -c "exec mysql -uroot -p\"\$MYSQL_ROOT_PASSWORD\""' \
+   scripts/crear_usuario_portal.sh cotizaciones
+   ```
+4. **Este sitio**:
+   ```bash
+   cp helm/solucionesenacero/values.local.yaml.example helm/solucionesenacero/values.local.yaml
+   # llenar dbPassword y portalFotosSecreto
+   docker login
+   ./deploy.sh
+   ```
+   `deploy.sh` valida los secretos, revisa que cotizaciones exista, construye y sube
+   `gmr27/solucionesenacero:<n>`, hace `helm upgrade --install` y una prueba de humo de la BD.
+5. **DNS**: `solucionesenacero.iguzman.com.mx` debe apuntar al cluster (igual que los demas subdominios).
+
+### Actualizaciones
+
+`./deploy.sh` (tag auto-incremental en `.deploy-tag`). No hace falta `npm run build`: el Dockerfile compila los assets.
+
+Notas: una sola replica (sesiones y limite de login en el disco del pod); `CONFIAR_PROXY=1` hace que el
+limite de intentos use la IP real que manda ingress-nginx (`X-Real-IP`).
+La rama `master` sigue publicada en Netlify (sitio estatico): mezclar `rediseno-mvc` a `master`
+solo cuando el sitio del cluster este verificado.
+
 ## Docker
 
 ```bash

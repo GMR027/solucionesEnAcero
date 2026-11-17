@@ -1,0 +1,8 @@
+# Copia como values.local.yaml (no se sube a git) y llena los valores.
+secrets:
+  # Contrasena del usuario portal_soluciones en el MySQL de cotizaciones
+  # (la misma que se paso como PORTAL_DB_PASSWORD a crear_usuario_portal.sh)
+  dbPassword: ""
+  # Secreto compartido con cotizaciones para las fotos de entrega.
+  # Generar con: openssl rand -hex 32  (minimo 32 caracteres)
+  portalFotosSecreto: ""

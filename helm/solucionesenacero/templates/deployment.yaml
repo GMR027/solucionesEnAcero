@@ -1,0 +1,73 @@
+# ===========================================================================
+# Deployment — PHP 8.3 + Apache (imagen construida con el Dockerfile del repo)
+# ===========================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solucionesenacero
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: solucionesenacero
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: solucionesenacero
+  template:
+    metadata:
+      labels:
+        app: solucionesenacero
+      annotations:
+        # Reinicia los pods si cambia el Secret
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: solucionesenacero
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APP_ENV
+              value: {{ .Values.app.entorno | quote }}
+            - name: EMPRESA_ID
+              value: {{ .Values.app.empresaId | quote }}
+            - name: DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.db.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: solucionesenacero
+                  key: DB_PASSWORD
+            - name: COTIZACIONES_URL
+              value: {{ .Values.cotizaciones.url | quote }}
+            - name: PORTAL_FOTOS_SECRETO
+              valueFrom:
+                secretKeyRef:
+                  name: solucionesenacero
+                  key: PORTAL_FOTOS_SECRETO
+            # Detras de ingress-nginx: usar X-Real-IP para el limite de intentos de login
+            - name: CONFIAR_PROXY
+              value: "1"
+          ports:
+            - containerPort: 80
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # Las paginas publicas no usan la BD: las sondas no dependen de MySQL
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5

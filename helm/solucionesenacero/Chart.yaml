@@ -1,0 +1,6 @@
+apiVersion: v2
+name: solucionesenacero
+description: Sitio web y portal de clientes de Soluciones en Acero (PHP/Apache) para iguzman.com.mx
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

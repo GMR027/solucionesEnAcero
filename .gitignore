@@ -4,3 +4,7 @@ public/build/
 includes/.env
 .DS_Store
 *.log
+
+# Despliegue
+helm/solucionesenacero/values.local.yaml
+.deploy-tag

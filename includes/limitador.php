@@ -29,10 +29,30 @@ final class Limitador
         return array_values(array_filter(is_array($datos) ? $datos : [], fn($t) => (int) $t > $limite));
     }
 
+    /**
+     * IP del cliente. Detras del ingress de Kubernetes REMOTE_ADDR es la del
+     * ingress (compartida por todos), asi que con CONFIAR_PROXY=1 se usa
+     * X-Real-IP / X-Forwarded-For, que pone ingress-nginx. Sin esa variable
+     * no se confia en las cabeceras (cualquiera podria falsificarlas).
+     */
+    public static function ipCliente(): string
+    {
+        if (env('CONFIAR_PROXY') === '1') {
+            $real = trim((string) ($_SERVER['HTTP_X_REAL_IP'] ?? ''));
+            $reenviada = trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''))[0]);
+            foreach ([$real, $reenviada] as $ip) {
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
+            }
+        }
+        return $_SERVER['REMOTE_ADDR'] ?? 'sin-ip';
+    }
+
     /** Claves que se revisan para una solicitud de login. */
     public static function claves(string $email): array
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'sin-ip';
+        $ip = self::ipCliente();
         return ['ip:' . $ip, 'correo:' . mb_strtolower(trim($email))];
     }
 

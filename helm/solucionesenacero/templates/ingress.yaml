@@ -1,0 +1,31 @@
+# ===========================================================================
+# Ingress — https://solucionesenacero.iguzman.com.mx
+# TLS con cert-manager (letsencrypt-prod), igual que el resto del cluster.
+# ===========================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: solucionesenacero
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: solucionesenacero
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.proxyBodySize }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - secretName: solucionesenacero-cert
+      hosts:
+        - {{ .Values.app.host }}
+  rules:
+    - host: {{ .Values.app.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: solucionesenacero
+                port:
+                  number: 80
