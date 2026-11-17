@@ -9,7 +9,8 @@ public/        Front controller (index.php), .htaccess, video y build/ (generado
 router/        Router con rutas GET/POST y parametros {slug}
 controllers/   PaginasController, ProductosController
 models/        Categoria, Producto, Distribuidor (base: Modelo)
-data/          Datos del catalogo (temporal hasta conectar la BD de cotizaciones)
+data/          Distribuidores y datos generales del sitio (el catalogo sale de la BD)
+recursos/      Imagenes para la carga inicial del catalogo en cotizaciones (no van en la imagen Docker)
 views/         layout.php, templates/, paginas/, productos/
 includes/      app.php (arranque), funciones.php, database.php (aun sin usar), .env.example
 src/           scss/, js/, img/, icons/, logo/  (fuentes que compila gulp)
@@ -20,7 +21,8 @@ src/           scss/, js/, img/, icons/, logo/  (fuentes que compila gulp)
 | Ruta | Pagina |
 |---|---|
 | `/` | Inicio |
-| `/productos/{slug}` | Productos de una categoria (`registros-angulo`, `registros-solera`, `tapas-metalicas`, `bases`) |
+| `/productos/{slug}` | Productos de una categoria (`registros-de-angulo`, `registros-de-solera`, `tapas-metalicas`, `bases`) |
+| `/img/catalogo/{archivo}` | Imagenes de productos y categorias (proxy con cache hacia cotizaciones) |
 | `/distribuidores` | Distribuidores con filtro por ciudad y buscador |
 | `/login` | Inicio de sesion del portal de clientes |
 | `/mi-cuenta/pedidos` | Pedidos del cliente (lista, nuevo, detalle, cancelar, PDF, repetir) |
@@ -36,19 +38,33 @@ composer install
 npm install
 npm run build        # compila SASS, copia JS e imagenes a public/build
 npm run dev          # build + watch
-npm run serve        # php -S localhost:3000 -t public
+npm run serve        # php -S localhost:3000 -t public public/index.php
 ```
 
-## Datos del catalogo
+## Catalogo desde la BD
 
-Los productos de `data/productos.php` son una copia de la tabla `productos` de la BD de cotizaciones
-(`empresa_id = 1`), **solo con columnas publicas** (sin precio, costo ni stock).
-`Producto::especificaciones()` convierte la `descripcion` de la BD en la tabla de la ficha tecnica.
+El catalogo publico se lee de la BD de **cotizaciones** (migracion 053) y se administra en su panel:
 
-Pendiente para la fase del CRUD / BD:
-- Tabla de categorias (hoy `productos.categoria` es texto libre; slug y portada viven en `data/categorias.php`).
-- Campo para la imagen de uso/detalle (hoy en `data/imagenes.php`).
-- Leer el catalogo desde la BD con un usuario de solo lectura sobre una vista publica.
+- **Productos** (`/admin/productos`): salen en el sitio si estan activos, son de Soluciones en Acero y tienen
+  marcada la casilla «Publicar en el sitio web». La ficha tecnica se arma de `descripcion`
+  (frases «Clave: valor.» y la linea «Tipo de uso: ...»); imagen principal e imagen de uso del mismo formulario.
+- **Categorias** (`/admin/productos/categorias`): nombre, direccion web (`/productos/<slug>`, no cambia al
+  renombrar), descripcion, portada y orden. Sin portada se usa la imagen del primer producto.
+- **Imagenes**: `/img/catalogo/<archivo>` las pide al servicio interno de cotizaciones, solo si pertenecen a
+  productos activos de la empresa o a sus categorias, y las guarda en cache en el pod (cache del navegador de 1 año).
+- Si la BD no responde, el inicio y distribuidores siguen funcionando y el catalogo muestra un aviso.
+- Precio, costo y existencias nunca se leen en el catalogo publico (solo el portal muestra el precio de lista).
+
+**Carga inicial de imagenes** de uso y portadas (las que tenia el sitio estatico), una vez por ambiente:
+`recursos/imagenes-web/` trae las imagenes y `mapa.txt`. En el cluster:
+
+```bash
+POD=$(kubectl -n cotizaciones get pod -l app=cotizaciones -o jsonpath='{.items[0].metadata.name}')
+kubectl -n cotizaciones cp recursos/imagenes-web "$POD":/tmp/imagenes-web
+kubectl -n cotizaciones exec "$POD" -- php scripts/importar_imagenes_web.php /tmp/imagenes-web
+```
+
+Los distribuidores siguen en `data/distribuidores.php`.
 
 ## Portal de clientes
 
@@ -90,7 +106,7 @@ y pide las fotos a `cotizaciones.cotizaciones.svc.cluster.local`.
 2. **Cotizaciones**: en `cotizaciones/helm/cotizaciones/values.local.yaml` agregar
    `secrets.portalFotosSecreto: "<secreto de fotos>"` y desplegar la rama `portal-fotos-firmadas`
    con su `./deploy.sh`.
-3. **Usuario MySQL** (desde el repo de cotizaciones):
+3. **Usuario MySQL** (desde el repo de cotizaciones; requiere las migraciones 052 y 053 ya aplicadas):
    ```bash
    PORTAL_DB_PASSWORD='<contrasena MySQL>' \
    MYSQL_CMD='kubectl -n cotizaciones exec -i deploy/mysql -- sh -c "exec mysql -uroot -p\"\$MYSQL_ROOT_PASSWORD\""' \
@@ -105,7 +121,8 @@ y pide las fotos a `cotizaciones.cotizaciones.svc.cluster.local`.
    ```
    `deploy.sh` valida los secretos, revisa que cotizaciones exista, construye y sube
    `gmr27/solucionesenacero:<n>`, hace `helm upgrade --install` y una prueba de humo de la BD.
-5. **DNS**: `solucionesenacero.iguzman.com.mx` debe apuntar al cluster (igual que los demas subdominios).
+5. **Imagenes del catalogo**: ver «Carga inicial de imagenes» arriba.
+6. **DNS**: `solucionesenacero.iguzman.com.mx` debe apuntar al cluster (igual que los demas subdominios).
 
 ### Actualizaciones
 

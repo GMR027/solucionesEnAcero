@@ -28,6 +28,10 @@
 @mixin panel-producto {
   background:
     radial-gradient(circle at 50% 40%, #ffffff 0%, var(--placa) 70%);
+
+  // Las imagenes de cotizaciones son JPG con fondo blanco: "multiply" hace
+  // que el blanco tome el color del panel (sin recuadro blanco).
+  img { mix-blend-mode: multiply; }
 }
 
 @mixin reducir-movimiento {

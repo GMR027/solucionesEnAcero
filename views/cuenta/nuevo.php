@@ -22,7 +22,7 @@ include __DIR__ . '/../templates/cuenta-header.php';
             <?php foreach ($productos as $producto): $cantidad = (int) ($cantidades[$producto->id] ?? 0); ?>
               <div class="linea-pedido <?= $cantidad > 0 ? 'is-seleccionada' : '' ?>" data-linea data-precio="<?= s((string) $producto->precio) ?>">
                 <div class="linea-pedido__imagen">
-                  <?php if ($producto->imagen()): ?><img src="<?= img($producto->imagen()) ?>" alt="" loading="lazy" width="80" height="80"><?php endif; ?>
+                  <?php if ($producto->imagen()): ?><img src="<?= s($producto->imagen()) ?>" alt="" loading="lazy" width="80" height="80"><?php endif; ?>
                 </div>
                 <div class="linea-pedido__info">
                   <span class="linea-pedido__sku"><?= s($producto->sku) ?></span>

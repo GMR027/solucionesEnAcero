@@ -34,7 +34,7 @@ include __DIR__ . '/../templates/pagina-header.php';
     <div class="otras-lineas">
       <?php foreach ($otras as $otra): ?>
         <a class="otra-linea" href="<?= s($otra->url()) ?>">
-          <img src="<?= img($otra->portada) ?>" alt="" loading="lazy" width="120" height="120">
+          <?php if ($otra->portada()): ?><img src="<?= s($otra->portada()) ?>" alt="" loading="lazy" width="120" height="120"><?php endif; ?>
           <span><?= s($otra->nombre) ?></span>
           <?= icono('flecha') ?>
         </a>

@@ -3,8 +3,8 @@ RewriteEngine On
 
 # URLs del sitio estatico anterior -> rutas nuevas
 RewriteRule ^index\.html$ / [R=301,L]
-RewriteRule ^src/pages/angulo\.html$ /productos/registros-angulo [R=301,L]
-RewriteRule ^src/pages/solera\.html$ /productos/registros-solera [R=301,L]
+RewriteRule ^src/pages/angulo\.html$ /productos/registros-de-angulo [R=301,L]
+RewriteRule ^src/pages/solera\.html$ /productos/registros-de-solera [R=301,L]
 RewriteRule ^src/pages/tapas\.html$ /productos/tapas-metalicas [R=301,L]
 RewriteRule ^src/pages/bases\.html$ /productos/bases [R=301,L]
 RewriteRule ^src/pages/distribuidores\.html$ /distribuidores [R=301,L]

@@ -6,11 +6,17 @@ function s(?string $texto): string
     return htmlspecialchars($texto ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-/** Lee una variable de entorno (real o de includes/.env). */
+/**
+ * Lee una variable de entorno. La real (Kubernetes, shell) tiene prioridad;
+ * includes/.env (cargado en $_ENV por phpdotenv) es solo el respaldo local.
+ */
 function env(string $clave, ?string $porDefecto = null): ?string
 {
-    $valor = $_ENV[$clave] ?? getenv($clave);
-    return ($valor === false || $valor === null || $valor === '') ? $porDefecto : (string) $valor;
+    $valor = getenv($clave);
+    if ($valor === false || $valor === '') {
+        $valor = $_ENV[$clave] ?? null;
+    }
+    return ($valor === null || $valor === '') ? $porDefecto : (string) $valor;
 }
 
 function debuguear(mixed $variable): never
@@ -83,4 +89,11 @@ function fecha(?string $fecha): string
     $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     $t = strtotime($fecha);
     return date('j', $t) . ' ' . $meses[(int) date('n', $t) - 1] . ' ' . date('Y', $t);
+}
+
+/** URL publica de una imagen del catalogo (servida por ImagenesController). */
+function imagenCatalogo(?string $archivo): ?string
+{
+    $archivo = basename((string) $archivo);
+    return $archivo !== '' ? '/img/catalogo/' . rawurlencode($archivo) : null;
 }

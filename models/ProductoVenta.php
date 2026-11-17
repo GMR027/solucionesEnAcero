@@ -15,6 +15,7 @@ class ProductoVenta extends ModeloDB
     public ?string $categoria = null;
     public string $unidad = 'pza';
     public float $precio = 0;
+    public ?string $archivoImagen = null;
 
     public function __construct(array $fila = [])
     {
@@ -24,9 +25,10 @@ class ProductoVenta extends ModeloDB
         $this->categoria = $fila['categoria'] ?? null;
         $this->unidad = (string) ($fila['unidad'] ?? 'pza');
         $this->precio = (float) ($fila['precio'] ?? 0);
+        $this->archivoImagen = ($fila['imagen'] ?? '') ?: null;
     }
 
-    private const SQL = 'SELECT p.id, p.nombre, p.sku, p.categoria, p.unidad, p.precio
+    private const SQL = 'SELECT p.id, p.nombre, p.sku, p.categoria, p.unidad, p.precio, p.imagen
                            FROM productos p
                           WHERE p.activo = 1
                             AND (p.empresa_id = ? OR EXISTS (
@@ -53,19 +55,9 @@ class ProductoVenta extends ModeloDB
         return $grupos;
     }
 
-    /** Id del producto pedible con ese SKU (para el boton de la ficha tecnica). */
-    public static function idPorSku(string $sku): ?int
-    {
-        $empresa = empresaId();
-        $fila = static::fila(self::SQL . ' AND p.sku = ? LIMIT 1', 'iis', [$empresa, $empresa, $sku]);
-        return $fila ? (int) $fila['id'] : null;
-    }
-
-    /** Imagen local (data/imagenes.php) por SKU. */
+    /** URL de la imagen del producto (proxy /img/catalogo) o null. */
     public function imagen(): ?string
     {
-        static $imagenes = null;
-        $imagenes ??= require dirname(__DIR__) . '/data/imagenes.php';
-        return $imagenes[$this->sku ?? '']['principal'] ?? null;
+        return imagenCatalogo($this->archivoImagen);
     }
 }

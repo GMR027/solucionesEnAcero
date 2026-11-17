@@ -90,11 +90,14 @@ $pasos = [
       <p class="encabezado-seccion__texto">Cada producto incluye ficha técnica con dimensiones, marco, contramarco, armado y tipo de uso recomendado.</p>
     </header>
 
+    <?php if (!$catalogoDisponible): ?>
+      <p class="vacio">El catálogo no está disponible en este momento. <a class="texto-acento" href="<?= s(whatsapp('Hola, quiero información de sus productos.')) ?>" target="_blank" rel="noopener">Escríbenos por WhatsApp</a> y te ayudamos.</p>
+    <?php endif; ?>
     <div class="categorias">
       <?php foreach ($categorias as $i => $categoria): ?>
         <a class="categoria" href="<?= s($categoria->url()) ?>" data-animar style="--retraso: <?= $i * 80 ?>ms">
           <div class="categoria__imagen">
-            <img src="<?= img($categoria->portada) ?>" alt="" loading="lazy" width="600" height="600">
+            <?php if ($categoria->portada()): ?><img src="<?= s($categoria->portada()) ?>" alt="" loading="lazy" width="600" height="600"><?php endif; ?>
           </div>
           <div class="categoria__cuerpo">
             <span class="categoria__numero"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>

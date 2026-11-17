@@ -1,0 +1,22 @@
+# Carga inicial de imagenes del catalogo web en cotizaciones.
+# Uso (desde el repo de cotizaciones): php scripts/importar_imagenes_web.php <esta carpeta>
+# Ver README del sitio, seccion "Catalogo desde la BD".
+# Imagenes de uso (render instalado) por SKU
+uso RA-1 Set-Ra1.png
+uso RA-3 Set-Ra3.png
+uso RA-4 Set-Ra4.png
+uso RA-5 Set-Ra5.png
+uso RA-6 Set-Ra6.png
+uso RS-1 Set-Rs1.png
+uso RS-2 Set-Rs2.png
+uso RS-3 Set-Rs3.png
+uso TM-1 Set-Tm1.png
+uso TM-2 Set-Tm2.png
+uso TM-3 Set-Tm1.png
+uso TM-4 Set-Tm2.png
+uso BB-1 Set-Bb1.png
+# Portadas de categoria por slug
+portada registros-de-angulo Ra3-P.png
+portada registros-de-solera Rs1-P.png
+portada tapas-metalicas TM-N-P.png
+portada bases BB-600x600.png

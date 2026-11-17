@@ -3,7 +3,7 @@
   <div class="producto__imagen">
     <span class="producto__sku"><?= s($producto->sku) ?></span>
     <?php if ($producto->imagenPrincipal()): ?>
-      <img src="<?= img($producto->imagenPrincipal()) ?>" alt="<?= s($producto->nombre) ?>" loading="lazy" width="800" height="800">
+      <img src="<?= s($producto->imagenPrincipal()) ?>" alt="<?= s($producto->nombre) ?>" loading="lazy" width="800" height="800">
     <?php endif; ?>
   </div>
   <div class="producto__cuerpo">

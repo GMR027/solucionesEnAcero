@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "gulp",
     "build": "gulp build",
-    "serve": "php -S localhost:3000 -t public"
+    "serve": "php -S localhost:3000 -t public public/index.php"
   },
   "keywords": [
     "php",

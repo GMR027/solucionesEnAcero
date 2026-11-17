@@ -2,26 +2,35 @@
 
 namespace Model;
 
-class Producto extends Modelo
+/**
+ * Producto del catalogo publico (tabla productos de cotizaciones, columnas
+ * publicas). La ficha tecnica sale de `descripcion`. Ver Catalogo.
+ */
+class Producto
 {
-    protected static string $archivo = 'productos.php';
-
     public int $id = 0;
     public string $nombre = '';
     public string $sku = '';
     public string $categoria = '';
     public string $descripcion = '';
     public ?string $imagen = null;
+    public ?string $imagen_uso = null;
 
-    private static ?array $imagenesLocales = null;
+    public function __construct(array $fila = [])
+    {
+        $this->id = (int) ($fila['id'] ?? 0);
+        $this->nombre = (string) ($fila['nombre'] ?? '');
+        $this->sku = (string) ($fila['sku'] ?? '');
+        $this->categoria = (string) ($fila['categoria'] ?? '');
+        $this->descripcion = (string) ($fila['descripcion'] ?? '');
+        $this->imagen = ($fila['imagen'] ?? '') ?: null;
+        $this->imagen_uso = ($fila['imagen_uso'] ?? '') ?: null;
+    }
 
     /** @return Producto[] */
-    public static function porCategoria(string $categoria): array
+    public static function all(): array
     {
-        return array_values(array_filter(
-            static::all(),
-            fn(Producto $p) => mb_strtolower($p->categoria) === mb_strtolower($categoria)
-        ));
+        return Catalogo::productos();
     }
 
     /** Identificador apto para atributos HTML (RA-1 -> ra-1). */
@@ -95,14 +104,16 @@ class Producto extends Modelo
         return $specs;
     }
 
+    /** URL de la imagen principal (proxy /img/catalogo) o null. */
     public function imagenPrincipal(): ?string
     {
-        return self::imagenesLocales()[$this->sku]['principal'] ?? null;
+        return imagenCatalogo($this->imagen);
     }
 
+    /** URL de la imagen de uso (producto instalado) o null. */
     public function imagenUso(): ?string
     {
-        return self::imagenesLocales()[$this->sku]['uso'] ?? null;
+        return imagenCatalogo($this->imagen_uso);
     }
 
     public function mensajeCotizacion(): string
@@ -113,11 +124,6 @@ class Producto extends Modelo
     private function lineas(): array
     {
         return array_values(array_filter(array_map('trim', preg_split('/\R/u', $this->descripcion))));
-    }
-
-    private static function imagenesLocales(): array
-    {
-        return self::$imagenesLocales ??= require dirname(__DIR__) . '/data/imagenes.php';
     }
 
     private static function capitalizar(string $texto): string

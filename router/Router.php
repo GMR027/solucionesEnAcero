@@ -22,8 +22,12 @@ class Router
         $metodo = $_SERVER['REQUEST_METHOD'] === 'HEAD' ? 'GET' : $_SERVER['REQUEST_METHOD'];
 
         foreach ($this->rutas[$metodo] ?? [] as $ruta => $fn) {
-            // Convierte /productos/{slug} en una expresion regular con grupos nombrados
-            $patron = '#^' . preg_replace('#\{(\w+)\}#', '(?P<$1>[a-z0-9-]+)', $ruta) . '$#';
+            // /productos/{slug} → grupo [a-z0-9-]+ ; {archivo:regex} → patron propio
+            $patron = '#^' . preg_replace_callback(
+                '#\{(\w+)(?::([^}]+))?\}#',
+                fn(array $m) => '(?P<' . $m[1] . '>' . ($m[2] ?? '[a-z0-9-]+') . ')',
+                $ruta
+            ) . '$#';
             if (preg_match($patron, $url, $coincidencias)) {
                 $parametros = array_filter($coincidencias, 'is_string', ARRAY_FILTER_USE_KEY);
                 call_user_func($fn, $this, ...$parametros);

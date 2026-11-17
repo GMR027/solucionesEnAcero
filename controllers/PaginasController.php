@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Model\Catalogo;
 use Model\Categoria;
 use Model\Distribuidor;
 use Model\Producto;
@@ -16,6 +17,7 @@ class PaginasController
             'descripcion' => 'Registros de ángulo y solera, tapas metálicas y bases para boiler. Entregas en La Paz, Los Cabos, Todos Santos, Comondú y Loreto.',
             'pagina' => 'inicio',
             'categorias' => Categoria::all(),
+            'catalogoDisponible' => Catalogo::disponible(),
             'totalProductos' => count(Producto::all()),
             'totalDistribuidores' => count(Distribuidor::all()),
             'script' => ['inicio.js'],
