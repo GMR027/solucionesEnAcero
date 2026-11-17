@@ -26,6 +26,14 @@ $pagina ??= '';
 
   <?php include __DIR__ . '/templates/header.php'; ?>
 
+  <?php $avisos = flashes(); if ($avisos): ?>
+    <div class="avisos" role="status" data-avisos>
+      <?php foreach ($avisos as $aviso): ?>
+        <p class="aviso aviso--<?= s($aviso['tipo']) ?>"><?= s($aviso['mensaje']) ?><button type="button" class="aviso__cerrar" aria-label="Cerrar aviso" data-cerrar-aviso><?= icono('cerrar') ?></button></p>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
   <main id="contenido">
     <?= $contenido ?>
   </main>

@@ -109,3 +109,34 @@
 
   p { margin: 0; }
 }
+
+.modal__botones {
+  display: grid;
+  gap: 0.75rem;
+}
+
+// Visor de fotos de entrega
+.modal--foto {
+  width: auto;
+  max-width: min(100% - 1.5rem, 72rem);
+  background: #000;
+
+  img {
+    max-height: calc(100dvh - 3rem);
+    width: auto;
+    margin: auto;
+  }
+}
+
+// Confirmacion (cancelar pedido)
+.modal--confirmar {
+  width: min(100% - 1.5rem, 28rem);
+}
+
+.modal__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}

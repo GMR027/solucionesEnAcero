@@ -3,7 +3,25 @@ document.addEventListener('DOMContentLoaded', () => {
   headerAlScroll();
   menuMovil();
   animarAlAparecer();
+  avisos();
+  menuCuenta();
 });
+
+/** Avisos (flash): se cierran con el boton o solos a los 8 s. */
+function avisos() {
+  document.querySelectorAll('[data-cerrar-aviso]').forEach((boton) => {
+    boton.addEventListener('click', () => boton.closest('.aviso').remove());
+  });
+  document.querySelectorAll('.aviso--exito').forEach((aviso) => setTimeout(() => aviso.remove(), 8000));
+}
+
+/** Menu de cuenta (<details>): se cierra al hacer clic fuera o con Esc. */
+function menuCuenta() {
+  const menu = document.querySelector('[data-cuenta-menu]');
+  if (!menu) return;
+  document.addEventListener('click', (e) => { if (!menu.contains(e.target)) menu.open = false; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') menu.open = false; });
+}
 
 /** Header solido al hacer scroll (en el inicio empieza transparente). */
 function headerAlScroll() {

@@ -56,3 +56,31 @@ function icono(string $nombre, string $clase = 'icono'): string
     $svg = $iconos[$nombre] ?? '';
     return str_replace('<svg ', '<svg class="' . s($clase) . '" aria-hidden="true" focusable="false" ', $svg);
 }
+
+function redirigir(string $url, int $codigo = 303): never
+{
+    header('Location: ' . $url, true, $codigo);
+    exit;
+}
+
+/** Ruta interna segura para redirigir despues del login (evita //otro-sitio). */
+function rutaInterna(?string $ruta, string $porDefecto = '/mi-cuenta/pedidos'): string
+{
+    $ruta = (string) $ruta;
+    return preg_match('#^/(?!/)[A-Za-z0-9/_\-]*$#', $ruta) ? $ruta : $porDefecto;
+}
+
+function dinero(float|string|null $monto): string
+{
+    return '$' . number_format((float) $monto, 2, '.', ',');
+}
+
+function fecha(?string $fecha): string
+{
+    if (!$fecha) {
+        return '';
+    }
+    $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    $t = strtotime($fecha);
+    return date('j', $t) . ' ' . $meses[(int) date('n', $t) - 1] . ' ' . date('Y', $t);
+}

@@ -15,6 +15,8 @@ ini_set('display_errors', $enDesarrollo ? '1' : '0');
 error_reporting(E_ALL);
 
 require __DIR__ . '/funciones.php';
+require __DIR__ . '/database.php';
+require __DIR__ . '/sesion.php';
+require __DIR__ . '/limitador.php';
 
-// La conexion a la BD (includes/database.php) se activara cuando el catalogo
-// se lea desde la base de datos de cotizaciones.
+iniciarSesion();

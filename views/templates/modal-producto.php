@@ -30,9 +30,16 @@
         </div>
       <?php endif; ?>
 
-      <a class="boton boton--primario boton--bloque" href="<?= s(whatsapp($producto->mensajeCotizacion())) ?>" target="_blank" rel="noopener">
-        <?= icono('whatsapp') ?> Cotizar <?= s($producto->sku) ?> por WhatsApp
-      </a>
+      <div class="modal__botones">
+        <?php if (!empty($idsPedibles[$producto->sku])): ?>
+          <a class="boton boton--primario boton--bloque" href="/mi-cuenta/pedidos/nuevo?producto=<?= (int) $idsPedibles[$producto->sku] ?>">
+            <?= icono('carrito') ?> Agregar a mi pedido
+          </a>
+        <?php endif; ?>
+        <a class="boton <?= empty($idsPedibles[$producto->sku]) ? 'boton--primario' : 'boton--contorno' ?> boton--bloque" href="<?= s(whatsapp($producto->mensajeCotizacion())) ?>" target="_blank" rel="noopener">
+          <?= icono('whatsapp') ?> Cotizar <?= s($producto->sku) ?> por WhatsApp
+        </a>
+      </div>
     </div>
   </div>
 </dialog>

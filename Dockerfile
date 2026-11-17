@@ -11,11 +11,14 @@ RUN npx gulp build
 FROM composer:2 AS composer
 WORKDIR /app
 COPY composer.json composer.lock* ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --ignore-platform-req=ext-gd --no-interaction --prefer-dist --optimize-autoloader
 
 # --- Imagen final ---
 FROM php:8.3-apache
-RUN docker-php-ext-install mysqli \
+RUN apt-get update && apt-get install -y --no-install-recommends libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install -j"$(nproc)" mysqli gd \
+ && rm -rf /var/lib/apt/lists/* \
  && a2enmod rewrite headers expires \
  && sed -ri 's#/var/www/html#/var/www/html/public#g' /etc/apache2/sites-available/000-default.conf \
  && printf '<Directory /var/www/html/public>\n  AllowOverride All\n</Directory>\n' > /etc/apache2/conf-enabled/public.conf

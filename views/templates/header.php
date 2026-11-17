@@ -4,8 +4,9 @@ $enlaces = [
     ['url' => '/#productos', 'texto' => 'Productos', 'activo' => ($pagina ?? '') === 'productos'],
     ['url' => '/#como-comprar', 'texto' => 'Cómo comprar', 'activo' => false],
     ['url' => '/#cobertura', 'texto' => 'Cobertura', 'activo' => false],
-    ['url' => '/distribuidores', 'texto' => 'Distribuidores', 'activo' => ($pagina ?? '') === 'distribuidores'],
 ];
+$sesion = cliente();
+$enCuenta = in_array($pagina ?? '', ['cuenta', 'login'], true);
 ?>
 <header class="header <?= $enInicio ? 'header--transparente' : '' ?>" data-header>
   <div class="contenedor header__barra">
@@ -23,6 +24,29 @@ $enlaces = [
       <?php foreach ($enlaces as $enlace): ?>
         <a class="navegacion__enlace <?= $enlace['activo'] ? 'is-activo' : '' ?>" href="<?= s($enlace['url']) ?>" <?= $enlace['activo'] ? 'aria-current="page"' : '' ?>><?= s($enlace['texto']) ?></a>
       <?php endforeach; ?>
+
+      <?php if ($sesion): ?>
+        <details class="cuenta-menu" data-cuenta-menu>
+          <summary class="navegacion__enlace <?= $enCuenta ? 'is-activo' : '' ?>">
+            <?= icono('usuario') ?> Mis pedidos <?= icono('chevron', 'icono cuenta-menu__flecha') ?>
+          </summary>
+          <div class="cuenta-menu__panel">
+            <p class="cuenta-menu__nombre"><?= s($sesion['nombre']) ?></p>
+            <a href="/mi-cuenta/pedidos"><?= icono('paquete') ?> Mis pedidos</a>
+            <a href="/mi-cuenta/pedidos/nuevo"><?= icono('carrito') ?> Nuevo pedido</a>
+            <a href="/mi-cuenta/contrasena"><?= icono('candado') ?> Cambiar contraseña</a>
+            <form method="post" action="/logout">
+              <?= csrf_campo() ?>
+              <button type="submit"><?= icono('salir') ?> Salir</button>
+            </form>
+          </div>
+        </details>
+      <?php else: ?>
+        <a class="navegacion__enlace navegacion__login <?= $enCuenta ? 'is-activo' : '' ?>" href="/login"><?= icono('usuario') ?> Iniciar sesión</a>
+      <?php endif; ?>
+
+      <a class="navegacion__enlace <?= ($pagina ?? '') === 'distribuidores' ? 'is-activo' : '' ?>" href="/distribuidores" <?= ($pagina ?? '') === 'distribuidores' ? 'aria-current="page"' : '' ?>>Distribuidores</a>
+
       <a class="boton boton--primario boton--chico navegacion__cta" href="<?= s(whatsapp('Hola, quiero cotizar.')) ?>" target="_blank" rel="noopener">
         <?= icono('whatsapp') ?> Cotizar
       </a>
