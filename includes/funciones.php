@@ -35,10 +35,18 @@ function sitio(?string $clave = null): mixed
     return $clave === null ? $datos : ($datos[$clave] ?? null);
 }
 
-/** Ruta publica de un recurso compilado por gulp (public/build). */
+/**
+ * Ruta publica de un recurso compilado por gulp (public/build).
+ *
+ * Lleva ?v=<fecha del archivo>: Cloudflare cachea /build/ una semana, asi que
+ * sin version un despliegue nuevo seguiria sirviendo el CSS/JS anterior.
+ */
 function asset(string $ruta): string
 {
-    return '/build/' . ltrim($ruta, '/');
+    $ruta = '/build/' . ltrim($ruta, '/');
+    $archivo = __DIR__ . '/../public' . rawurldecode($ruta);
+    $version = is_file($archivo) ? filemtime($archivo) : false;
+    return $version ? $ruta . '?v=' . $version : $ruta;
 }
 
 /** Ruta publica de una imagen dentro de public/build/img. */
