@@ -1,6 +1,6 @@
 <?php
 /** @var \Model\Categoria[] $categorias */
-/** @var array<int, array{id: int, fecha: string}> $galeria */
+/** @var int[] $galeria ids de foto de entrega */
 $anios = (int) date('Y') - (int) sitio('desde');
 $pasos = [
     ['icono' => 'seleccionar', 'titulo' => 'Selecciona', 'texto' => 'Elige en el catálogo el registro, la tapa o la base que necesita tu obra. Cada producto trae su ficha técnica.'],
@@ -164,19 +164,10 @@ $pasos = [
       <p class="encabezado-seccion__texto">Así llegan nuestros registros, tapas y bases a las obras de Baja California Sur.</p>
     </header>
 
-    <ul class="entregas-galeria__lista" data-galeria data-animar>
-      <?php foreach ($galeria as $i => $foto): ?>
-        <?php $mes = \Model\Galeria::mes($foto['fecha']); ?>
-        <li class="entregas-galeria__panel<?= $i === 0 ? ' entregas-galeria__panel--activo' : '' ?>">
-          <a class="entregas-galeria__enlace" href="/img/entregas/<?= (int) $foto['id'] ?>" target="_blank" rel="noopener"
-             aria-label="Ver foto de entrega<?= $mes !== '' ? ' de ' . s($mes) : '' ?> en tamaño completo">
-            <img src="/img/entregas/<?= (int) $foto['id'] ?>" alt="Entrega de Soluciones en Acero<?= $mes !== '' ? ', ' . s($mes) : '' ?>"
-                 loading="lazy" decoding="async" width="1200" height="900">
-            <span class="entregas-galeria__pie">
-              <span class="entregas-galeria__numero"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
-              <?php if ($mes !== ''): ?><span class="entregas-galeria__fecha">Entrega · <?= s($mes) ?></span><?php endif; ?>
-            </span>
-          </a>
+    <ul class="entregas-galeria__lista" data-galeria aria-label="Fotos de entregas recientes">
+      <?php foreach ($galeria as $fotoId): ?>
+        <li class="entregas-galeria__item">
+          <img src="/img/entregas/<?= (int) $fotoId ?>" alt="Entrega de Soluciones en Acero" loading="lazy" decoding="async">
         </li>
       <?php endforeach; ?>
     </ul>

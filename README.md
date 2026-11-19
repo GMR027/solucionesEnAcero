@@ -74,7 +74,8 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
 - **Acceso:** `clientes.email` + `clientes.portal_contrasena` (bcrypt). El administrador da el acceso desde cotizaciones.
 - **Pedidos:** se insertan en `pedidos`/`pedido_detalles` con `origen='portal'`, `estado='pendiente'`, precio de lista
   e importes iguales a `Cotizaciones::calcular`. El administrador los cotiza/vende desde `/admin/pedidos`.
-- **Galeria de inicio:** las ultimas 10 fotos de entrega de las ventas vigentes de `EMPRESA_ID` (`Model\Galeria`;
+- **Galeria de inicio:** acordeon con la primera foto de cada una de las ultimas 10 entregas de las ventas
+  vigentes de `EMPRESA_ID` (`Model\Galeria`;
   requiere `SELECT (empresa_id)` sobre `ventas`). Si no hay fotos, la seccion no se muestra. Solo se sirven
   esas 10 y se piden firmadas con `modo=galeria`: cotizaciones las devuelve con el logo, sin fecha ni
   ubicacion del cliente y sin EXIF.

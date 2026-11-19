@@ -428,114 +428,42 @@
   }
 }
 
-// ---------- Galeria de entregas (acordeon) ----------
-// Paneles delgados que se expanden al pasar el cursor, al enfocarlos o al
-// tocarlos (JS marca --activo). En movil el acordeon es vertical.
+// ---------- Galeria de entregas (Accordion Image Gallery) ----------
+// Franjas del mismo ancho; la que tiene el cursor crece (flex 1 → 7). En
+// pantallas tactiles el toque marca --activo (inicio.js).
 .entregas-galeria {
   padding-top: 0;
 
   &__lista {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    height: clamp(34rem, 150vw, 42rem);
+    flex-direction: row;
+    width: 100%;
+    height: 70vh;
     margin: 0;
     padding: 0;
     list-style: none;
-
-    @include m.tablet {
-      flex-direction: row;
-      height: clamp(24rem, 42vw, 32rem);
-    }
   }
 
-  &__panel {
-    position: relative;
-    flex: 1 1 0;
+  &__item {
+    flex: 1;
     min-width: 0;
-    min-height: 0;
+    height: 100%;
     overflow: hidden;
-    background: var(--superficie);
-    border: 1px solid var(--borde);
-    transition: flex var(--transicion), border-color var(--transicion);
-    @include m.chaflan(14px);
+    transition: flex 0.8s ease;
 
-    &--activo {
-      flex-grow: 7;
-      border-color: var(--acento);
-    }
+    &:hover,
+    &--activo { flex: 7; }
 
-    @media (hover: hover) {
-      // Con cursor manda el hover; el panel marcado solo cuando nada mas lo esta.
-      .entregas-galeria__lista:hover &--activo:not(:hover) { flex-grow: 1; border-color: var(--borde); }
-      &:hover { flex-grow: 7; border-color: var(--acento); }
-    }
-
-    &:focus-within { flex-grow: 7; border-color: var(--acento); }
-  }
-
-  &__enlace {
-    display: block;
-    width: 100%;
-    height: 100%;
-    color: var(--texto);
-    text-decoration: none;
-
-    &:focus-visible { outline: 2px solid var(--acento); outline-offset: -4px; }
-  }
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(0.7) brightness(0.55);
-    transform: scale(1.06);
-    transition: filter var(--transicion), transform 0.8s ease;
-  }
-
-  &__pie {
-    position: absolute;
-    inset: auto 0 0 0;
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding: 2.5rem 1.25rem 1rem;
-    background: linear-gradient(to top, rgba(15, 17, 20, 0.92), transparent);
-    opacity: 0;
-    transform: translateY(0.5rem);
-    transition: opacity var(--transicion), transform var(--transicion);
-    white-space: nowrap;
-  }
-
-  &__numero {
-    font-family: var(--fuente-titulos);
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--acento);
-  }
-
-  &__fecha { font-size: 0.9rem; color: var(--texto-suave); }
-
-  // Estado expandido (mismas reglas que flex-grow: 7)
-  &__panel--activo,
-  &__panel:focus-within {
-    img { filter: none; transform: scale(1); }
-    .entregas-galeria__pie { opacity: 1; transform: none; transition-delay: 0.15s; }
-  }
-
-  @media (hover: hover) {
-    &__lista:hover &__panel--activo:not(:hover) {
-      img { filter: grayscale(0.7) brightness(0.55); transform: scale(1.06); }
-      .entregas-galeria__pie { opacity: 0; transform: translateY(0.5rem); transition-delay: 0s; }
-    }
-
-    &__panel:hover {
-      img { filter: none; transform: scale(1); }
-      .entregas-galeria__pie { opacity: 1; transform: none; transition-delay: 0.15s; }
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
     }
   }
 
   @include m.reducir-movimiento {
-    &__panel, img, &__pie { transition: none; }
+    &__item { transition: none; }
   }
 }
