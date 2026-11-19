@@ -2,7 +2,23 @@
 document.addEventListener('DOMContentLoaded', () => {
   contadores();
   resaltarSeccion();
+  galeria();
 });
+
+// Galeria de entregas: en pantallas tactiles el primer toque expande el panel
+// y el segundo abre la foto. Con cursor, el hover ya lo expande.
+function galeria() {
+  const lista = document.querySelector('[data-galeria]');
+  if (!lista || window.matchMedia('(hover: hover)').matches) return;
+
+  lista.addEventListener('click', (evento) => {
+    const panel = evento.target.closest('.entregas-galeria__panel');
+    if (!panel || panel.classList.contains('entregas-galeria__panel--activo')) return;
+    evento.preventDefault();
+    lista.querySelector('.entregas-galeria__panel--activo')?.classList.remove('entregas-galeria__panel--activo');
+    panel.classList.add('entregas-galeria__panel--activo');
+  });
+}
 
 function contadores() {
   const numeros = document.querySelectorAll('[data-contador]');

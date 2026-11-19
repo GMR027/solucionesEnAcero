@@ -8,8 +8,8 @@ Sitio web de Soluciones en Acero (La Paz, B.C.S.): PHP 8.3 con MVC, SASS y JavaS
 public/        Front controller (index.php), .htaccess, video y build/ (generado por gulp)
 router/        Router con rutas GET/POST y parametros {slug}
 controllers/   PaginasController, ProductosController
-models/        Categoria, Producto, Distribuidor (base: Modelo)
-data/          Distribuidores y datos generales del sitio (el catalogo sale de la BD)
+models/        Categoria, Producto, Distribuidor (consultas en ModeloDB)
+data/          Datos generales del sitio (catalogo y distribuidores salen de la BD)
 recursos/      Imagenes para la carga inicial del catalogo en cotizaciones (no van en la imagen Docker)
 views/         layout.php, templates/, paginas/, productos/
 includes/      app.php (arranque), funciones.php, database.php (aun sin usar), .env.example
@@ -27,6 +27,7 @@ src/           scss/, js/, img/, icons/, logo/  (fuentes que compila gulp)
 | `/login` | Inicio de sesion del portal de clientes |
 | `/mi-cuenta/pedidos` | Pedidos del cliente (lista, nuevo, detalle, cancelar, PDF, repetir) |
 | `/mi-cuenta/fotos/{id}` | Foto de entrega (proxy firmado hacia cotizaciones, con marca de agua) |
+| `/img/entregas/{id}` | Foto de la galeria de inicio (proxy firmado en modo galeria: solo logo, con cache) |
 | `/mi-cuenta/contrasena` | Cambio de contrasena |
 
 Las URLs del sitio estatico anterior (`/src/pages/*.html`) redirigen con 301 desde `public/.htaccess`.
@@ -51,8 +52,8 @@ El catalogo publico se lee de la BD de **cotizaciones** (migracion 053) y se adm
 - **Categorias** (`/admin/productos/categorias`): nombre, direccion web (`/productos/<slug>`, no cambia al
   renombrar), descripcion, portada y orden. Sin portada se usa la imagen del primer producto.
 - **Imagenes**: `/img/catalogo/<archivo>` las pide al servicio interno de cotizaciones, solo si pertenecen a
-  productos activos de la empresa o a sus categorias, y las guarda en cache en el pod (cache del navegador de 1 año).
-- Si la BD no responde, el inicio y distribuidores siguen funcionando y el catalogo muestra un aviso.
+  productos activos de la empresa, a sus categorias o a sus distribuidores publicados, y las guarda en cache en el pod (cache del navegador de 1 año).
+- Si la BD no responde, el inicio sigue funcionando y el catalogo y los distribuidores muestran un aviso.
 - Precio, costo y existencias nunca se leen en el catalogo publico (solo el portal muestra el precio de lista).
 
 **Carga inicial de imagenes** de uso y portadas (las que tenia el sitio estatico), una vez por ambiente:
@@ -64,7 +65,7 @@ kubectl -n cotizaciones cp recursos/imagenes-web "$POD":/tmp/imagenes-web
 kubectl -n cotizaciones exec "$POD" -- php scripts/importar_imagenes_web.php /tmp/imagenes-web
 ```
 
-Los distribuidores siguen en `data/distribuidores.php`.
+Los distribuidores salen de la tabla `distribuidores` (migración 056 de cotizaciones) y se administran en Acero 360 → Distribuidores. Las fachadas heredadas (`distribuidores/...`) se sirven desde `public/build/img`; las subidas desde Acero 360 pasan por el proxy `/img/catalogo/`.
 
 ## Portal de clientes
 
@@ -73,6 +74,10 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
 - **Acceso:** `clientes.email` + `clientes.portal_contrasena` (bcrypt). El administrador da el acceso desde cotizaciones.
 - **Pedidos:** se insertan en `pedidos`/`pedido_detalles` con `origen='portal'`, `estado='pendiente'`, precio de lista
   e importes iguales a `Cotizaciones::calcular`. El administrador los cotiza/vende desde `/admin/pedidos`.
+- **Galeria de inicio:** las ultimas 10 fotos de entrega de las ventas vigentes de `EMPRESA_ID` (`Model\Galeria`;
+  requiere `SELECT (empresa_id)` sobre `ventas`). Si no hay fotos, la seccion no se muestra. Solo se sirven
+  esas 10 y se piden firmadas con `modo=galeria`: cotizaciones las devuelve con el logo, sin fecha ni
+  ubicacion del cliente y sin EXIF.
 - **Fotos de entrega:** `pedidos.venta_id → entregas → entrega_fotos`. El sitio verifica que la foto sea del cliente
   y la pide firmada (HMAC, `PORTAL_FOTOS_SECRETO`) a `COTIZACIONES_URL/portal/entregas/foto`, que la devuelve
   con la marca de agua de la entrega. El navegador nunca ve la URL de cotizaciones.

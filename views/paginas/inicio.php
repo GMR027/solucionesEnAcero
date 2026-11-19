@@ -1,5 +1,6 @@
 <?php
 /** @var \Model\Categoria[] $categorias */
+/** @var array<int, array{id: int, fecha: string}> $galeria */
 $anios = (int) date('Y') - (int) sitio('desde');
 $pasos = [
     ['icono' => 'seleccionar', 'titulo' => 'Selecciona', 'texto' => 'Elige en el catálogo el registro, la tapa o la base que necesita tu obra. Cada producto trae su ficha técnica.'],
@@ -154,15 +155,31 @@ $pasos = [
   </div>
 </section>
 
-<section class="seccion novedades" aria-labelledby="novedades-titulo">
+<?php if ($galeria): ?>
+<section class="seccion entregas-galeria" id="galeria" aria-labelledby="galeria-titulo">
   <div class="contenedor">
-    <div class="novedades__panel" style="--imagen: url('<?= img('blog.jpg') ?>')" data-animar>
-      <div class="novedades__texto">
-        <p class="etiqueta">Blog y novedades</p>
-        <h2 class="titulo-seccion" id="novedades-titulo">Entérate de todo</h2>
-        <p>Mantente al día con lo último sobre nuestros productos, promociones exclusivas y lanzamientos futuros en nuestras redes sociales.</p>
-      </div>
-      <a class="boton boton--claro" href="<?= s(sitio('facebook')) ?>" target="_blank" rel="noopener"><?= icono('facebook') ?> Ver novedades</a>
-    </div>
+    <header class="encabezado-seccion" data-animar>
+      <p class="etiqueta">Galería</p>
+      <h2 class="titulo-seccion" id="galeria-titulo">Entregas recientes</h2>
+      <p class="encabezado-seccion__texto">Así llegan nuestros registros, tapas y bases a las obras de Baja California Sur.</p>
+    </header>
+
+    <ul class="entregas-galeria__lista" data-galeria data-animar>
+      <?php foreach ($galeria as $i => $foto): ?>
+        <?php $mes = \Model\Galeria::mes($foto['fecha']); ?>
+        <li class="entregas-galeria__panel<?= $i === 0 ? ' entregas-galeria__panel--activo' : '' ?>">
+          <a class="entregas-galeria__enlace" href="/img/entregas/<?= (int) $foto['id'] ?>" target="_blank" rel="noopener"
+             aria-label="Ver foto de entrega<?= $mes !== '' ? ' de ' . s($mes) : '' ?> en tamaño completo">
+            <img src="/img/entregas/<?= (int) $foto['id'] ?>" alt="Entrega de Soluciones en Acero<?= $mes !== '' ? ', ' . s($mes) : '' ?>"
+                 loading="lazy" decoding="async" width="1200" height="900">
+            <span class="entregas-galeria__pie">
+              <span class="entregas-galeria__numero"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
+              <?php if ($mes !== ''): ?><span class="entregas-galeria__fecha">Entrega · <?= s($mes) ?></span><?php endif; ?>
+            </span>
+          </a>
+        </li>
+      <?php endforeach; ?>
+    </ul>
   </div>
 </section>
+<?php endif; ?>

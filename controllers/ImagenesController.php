@@ -3,14 +3,16 @@
 namespace Controllers;
 
 use Model\Catalogo;
+use Model\Distribuidor;
 use MVC\Router;
 
 /**
  * Imagenes del catalogo (productos y portadas de categoria).
  *
  * Los archivos viven en el volumen de cotizaciones (public/image). Este proxy:
- *  1. solo sirve archivos que pertenecen a productos activos de la empresa o
- *     a sus categorias (nunca fotos de entrega, firmas, logos, etc.);
+ *  1. solo sirve archivos que pertenecen a productos activos de la empresa,
+ *     a sus categorias o a sus distribuidores publicados (nunca fotos de
+ *     entrega, firmas, logos, etc.);
  *  2. los pide al servicio interno de cotizaciones y los guarda en cache en
  *     el disco del pod; los nombres son unicos e inmutables (se generan al
  *     subir), asi que el navegador los puede cachear un año.
@@ -27,7 +29,7 @@ class ImagenesController
 
         if (!is_file($cache)) {
             try {
-                $permitida = Catalogo::imagenPermitida($archivo);
+                $permitida = Catalogo::imagenPermitida($archivo) || Distribuidor::imagenPermitida($archivo);
             } catch (\mysqli_sql_exception $e) {
                 error_log('[ImagenesController] ' . $e->getMessage());
                 self::noEncontrada(503);

@@ -36,14 +36,15 @@ include __DIR__ . '/../templates/pagina-header.php';
           <?php foreach ($lista as $d): ?>
             <article class="distribuidor" data-distribuidor data-texto="<?= s(mb_strtolower("{$d->nombre} {$d->sucursal} {$d->direccion} {$d->municipio}")) ?>">
               <div class="distribuidor__imagen">
-                <?php if ($d->imagen): ?>
-                  <img src="<?= img($d->imagen) ?>" alt="Fachada de <?= s($d->nombre) ?>" loading="lazy" width="400" height="260">
+                <?php if ($d->imagenUrl()): ?>
+                  <img src="<?= s($d->imagenUrl()) ?>" alt="Fachada de <?= s($d->nombre) ?>" loading="lazy" width="400" height="260">
                 <?php endif; ?>
               </div>
               <div class="distribuidor__cuerpo">
                 <h3 class="distribuidor__nombre"><?= s($d->nombre) ?></h3>
                 <?php if ($d->sucursal): ?><p class="distribuidor__sucursal">Sucursal <?= s($d->sucursal) ?></p><?php endif; ?>
                 <p class="distribuidor__direccion"><?= s($d->direccion) ?></p>
+                <?php if ($d->telefonoEnlace()): ?><p class="distribuidor__sucursal"><a href="<?= s($d->telefonoEnlace()) ?>"><?= s($d->telefono) ?></a></p><?php endif; ?>
                 <?php if ($d->maps): ?>
                   <a class="boton boton--contorno boton--chico" href="<?= s($d->maps) ?>" target="_blank" rel="noopener"><?= icono('ubicacion') ?> Cómo llegar</a>
                 <?php endif; ?>
@@ -55,6 +56,9 @@ include __DIR__ . '/../templates/pagina-header.php';
     <?php endforeach; ?>
 
     <p class="vacio" data-vacio hidden>No encontramos distribuidores con esa búsqueda.</p>
+    <?php if (!$grupos): ?>
+      <p class="vacio"><?= $disponible ? 'Pronto publicaremos la lista de distribuidores.' : 'No pudimos cargar la lista de distribuidores. Intenta de nuevo en unos minutos.' ?></p>
+    <?php endif; ?>
   </div>
 </section>
 

@@ -28,6 +28,7 @@ $router->get('/distribuidores', [PaginasController::class, 'distribuidores']);
 // Catalogo
 $router->get('/productos', [ProductosController::class, 'index']);
 $router->get('/productos/{slug}', [ProductosController::class, 'categoria']);
+$router->get('/img/entregas/{id:[0-9]+}', [FotosController::class, 'galeria']);
 $router->get('/img/catalogo/{archivo:[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)}', [ImagenesController::class, 'catalogo']);
 
 // Portal de clientes: sesion

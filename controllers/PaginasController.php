@@ -5,6 +5,7 @@ namespace Controllers;
 use Model\Catalogo;
 use Model\Categoria;
 use Model\Distribuidor;
+use Model\Galeria;
 use Model\Producto;
 use MVC\Router;
 
@@ -20,6 +21,7 @@ class PaginasController
             'catalogoDisponible' => Catalogo::disponible(),
             'totalProductos' => count(Producto::all()),
             'totalDistribuidores' => count(Distribuidor::all()),
+            'galeria' => Galeria::fotos(),
             'script' => ['inicio.js'],
         ]);
     }
@@ -33,6 +35,7 @@ class PaginasController
             'descripcion' => 'Encuentra nuestros registros, tapas y bases en ferreterías y casas de materiales de Baja California Sur.',
             'pagina' => 'distribuidores',
             'grupos' => $grupos,
+            'disponible' => Distribuidor::disponible(),
             'total' => array_sum(array_map('count', $grupos)),
             'script' => ['distribuidores.js'],
         ]);
