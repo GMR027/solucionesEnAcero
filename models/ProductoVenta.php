@@ -15,6 +15,7 @@ class ProductoVenta extends ModeloDB
     public ?string $categoria = null;
     public string $unidad = 'pza';
     public float $precio = 0;
+    public int $stock = 0;
     public ?string $archivoImagen = null;
 
     public function __construct(array $fila = [])
@@ -25,10 +26,17 @@ class ProductoVenta extends ModeloDB
         $this->categoria = $fila['categoria'] ?? null;
         $this->unidad = (string) ($fila['unidad'] ?? 'pza');
         $this->precio = (float) ($fila['precio'] ?? 0);
+        $this->stock = (int) ($fila['stock'] ?? 0);
         $this->archivoImagen = ($fila['imagen'] ?? '') ?: null;
     }
 
-    private const SQL = 'SELECT p.id, p.nombre, p.sku, p.categoria, p.unidad, p.precio, p.imagen
+    /** Existencia que el portal puede ofrecer (nunca negativa). */
+    public function disponible(): int
+    {
+        return max(0, $this->stock);
+    }
+
+    private const SQL = 'SELECT p.id, p.nombre, p.sku, p.categoria, p.unidad, p.precio, p.stock, p.imagen
                            FROM productos p
                           WHERE p.activo = 1
                             AND (p.empresa_id = ? OR EXISTS (

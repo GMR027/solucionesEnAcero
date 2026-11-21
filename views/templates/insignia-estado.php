@@ -1,2 +1,3 @@
 <?php /** @var \Model\Pedido $pedido */ ?>
-<span class="insignia insignia--<?= s($pedido->estado) ?>"><?= s($pedido->etiquetaEstado()) ?></span>
+<?php $claseInsignia = $pedido->entregado() ? 'entregado' : $pedido->estado; ?>
+<span class="insignia insignia--<?= s($claseInsignia) ?>"><?= s($pedido->etiquetaEstado()) ?></span>

@@ -42,6 +42,52 @@
   margin-bottom: 1.25rem;
 }
 
+.filtros-pedidos {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+
+  .filtro-pedido {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    color: var(--texto-suave);
+    font-family: var(--fuente-titulos);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background-color var(--transicion), border-color var(--transicion), color var(--transicion);
+
+    span {
+      padding: 0 0.45rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+      letter-spacing: 0;
+    }
+
+    &:hover { border-color: var(--borde-fuerte); color: var(--texto); }
+
+    &.is-activo {
+      background: var(--acento);
+      border-color: var(--acento);
+      color: #fff;
+
+      span { background: rgba(0, 0, 0, 0.2); }
+    }
+  }
+}
+
 // ---------- Lista de pedidos ----------
 .tabla-pedidos {
   border: 1px solid var(--borde);
@@ -174,6 +220,13 @@
     background: linear-gradient(90deg, rgba(243, 119, 54, 0.08), var(--superficie) 60%);
   }
 
+  &.is-agotada {
+    opacity: 0.5;
+    filter: grayscale(1);
+
+    .cantidad { pointer-events: none; }
+  }
+
   @include m.tablet { grid-template-columns: 4.5rem 1fr auto 7rem; }
 
   &__imagen {
@@ -198,6 +251,23 @@
 
   &__nombre { font-weight: 600; cursor: pointer; }
   &__precio { color: var(--texto-suave); font-size: 0.9rem; }
+
+  &__agotado {
+    color: #ff8f8f;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  &__aviso {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #ff8f8f;
+    font-size: 0.85rem;
+
+    &:empty { display: none; }
+  }
 
   .cantidad { grid-column: 1 / -1; justify-self: start; @include m.tablet { grid-column: auto; } }
 

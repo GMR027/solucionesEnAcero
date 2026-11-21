@@ -19,8 +19,16 @@ include __DIR__ . '/../templates/cuenta-header.php';
         <?php foreach ($grupos as $categoria => $productos): ?>
           <fieldset class="grupo-pedido">
             <legend class="grupo-pedido__titulo"><?= s($categoria) ?></legend>
-            <?php foreach ($productos as $producto): $cantidad = (int) ($cantidades[$producto->id] ?? 0); ?>
-              <div class="linea-pedido <?= $cantidad > 0 ? 'is-seleccionada' : '' ?>" data-linea data-precio="<?= s((string) $producto->precio) ?>">
+            <?php foreach ($productos as $producto):
+                $cantidad = (int) ($cantidades[$producto->id] ?? 0);
+                $disponible = $producto->disponible();
+                $agotado = $disponible < 1;
+                if ($agotado) {
+                    $cantidad = 0;
+                }
+                ?>
+              <div class="linea-pedido <?= $cantidad > 0 ? 'is-seleccionada' : '' ?> <?= $agotado ? 'is-agotada' : '' ?>"
+                   data-linea data-precio="<?= s((string) $producto->precio) ?>" data-disponible="<?= $disponible ?>" data-unidad="<?= s($producto->unidad) ?>">
                 <div class="linea-pedido__imagen">
                   <?php if ($producto->imagen()): ?><img src="<?= s($producto->imagen()) ?>" alt="" loading="lazy" width="80" height="80"><?php endif; ?>
                 </div>
@@ -28,14 +36,16 @@ include __DIR__ . '/../templates/cuenta-header.php';
                   <span class="linea-pedido__sku"><?= s($producto->sku) ?></span>
                   <label class="linea-pedido__nombre" for="cant-<?= $producto->id ?>"><?= s($producto->nombre) ?></label>
                   <span class="linea-pedido__precio"><?= dinero($producto->precio) ?> / <?= s($producto->unidad) ?></span>
+                  <?php if ($agotado): ?><span class="linea-pedido__agotado">No disponible</span><?php endif; ?>
                 </div>
                 <div class="cantidad">
-                  <button type="button" class="cantidad__boton" data-menos aria-label="Quitar uno de <?= s($producto->nombre) ?>"><?= icono('menos') ?></button>
+                  <button type="button" class="cantidad__boton" data-menos aria-label="Quitar uno de <?= s($producto->nombre) ?>" <?= $agotado ? 'disabled' : '' ?>><?= icono('menos') ?></button>
                   <input class="cantidad__control" type="number" inputmode="numeric" min="0" max="<?= \Model\Pedido::MAX_CANTIDAD ?>" step="1"
-                         id="cant-<?= $producto->id ?>" name="cantidad[<?= $producto->id ?>]" value="<?= $cantidad ?>" data-cantidad>
-                  <button type="button" class="cantidad__boton" data-mas aria-label="Agregar uno de <?= s($producto->nombre) ?>"><?= icono('mas') ?></button>
+                         id="cant-<?= $producto->id ?>" name="cantidad[<?= $producto->id ?>]" value="<?= $cantidad ?>" data-cantidad <?= $agotado ? 'disabled' : '' ?>>
+                  <button type="button" class="cantidad__boton" data-mas aria-label="Agregar uno de <?= s($producto->nombre) ?>" <?= $agotado ? 'disabled' : '' ?>><?= icono('mas') ?></button>
                 </div>
                 <span class="linea-pedido__importe" data-importe><?= $cantidad ? dinero($cantidad * $producto->precio) : '' ?></span>
+                <p class="linea-pedido__aviso" data-aviso role="alert" aria-live="polite"></p>
               </div>
             <?php endforeach; ?>
           </fieldset>

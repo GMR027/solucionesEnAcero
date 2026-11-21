@@ -17,13 +17,20 @@ class Pedido extends ModeloDB
     public const IVA = 16.0;
     public const MAX_CANTIDAD = 9999;
     public const MAX_RENGLONES = 60;
-    public const POR_PAGINA = 15;
+    public const POR_PAGINA = 10;
 
     public const ESTADOS = [
         'pendiente' => 'Pendiente',
         'cotizado' => 'Cotizado',
         'vendido' => 'Vendido',
         'cancelado' => 'Cancelado',
+    ];
+
+    public const FILTROS = [
+        'todos' => 'Todos',
+        'entregados' => 'Entregados',
+        'en-proceso' => 'En proceso',
+        'cancelados' => 'Cancelados',
     ];
 
     public int $id = 0;
@@ -43,6 +50,8 @@ class Pedido extends ModeloDB
     public ?int $venta_id = null;
     public ?string $cancelado_en = null;
     public ?string $creado_en = null;
+    public ?string $entrega_estado = null;
+    public ?string $entrega_fecha = null;
     public int $renglones = 0;
 
     /** @var string[] */
@@ -112,9 +121,9 @@ class Pedido extends ModeloDB
 
     /**
      * Normaliza lo que manda el formulario: [producto_id => cantidad].
-     * Solo productos disponibles; el precio SIEMPRE sale de la BD.
+     * Solo productos disponibles; el precio y la existencia SIEMPRE salen de la BD.
      *
-     * @return array<int, array{cantidad: int, precio: float, producto: ProductoVenta}>
+     * @return array<int, array{cantidad: int, precio: float, disponible: int, producto: ProductoVenta}>
      */
     public static function lineasDesdeFormulario(array $cantidades, array $disponibles): array
     {
@@ -129,6 +138,7 @@ class Pedido extends ModeloDB
                 'cantidad' => min(self::MAX_CANTIDAD, $cantidad),
                 'precio' => $disponibles[$productoId]->precio,
                 'descuento_pct' => 0,
+                'disponible' => $disponibles[$productoId]->disponible(),
                 'producto' => $disponibles[$productoId],
             ];
         }
@@ -145,6 +155,18 @@ class Pedido extends ModeloDB
         }
         if (count($lineas) > self::MAX_RENGLONES) {
             self::$errores[] = 'El pedido tiene demasiados productos.';
+        }
+        foreach ($lineas as $linea) {
+            $cantidad = (int) $linea['cantidad'];
+            $disponible = max(0, (int) ($linea['disponible'] ?? 0));
+            $nombre = (string) ($linea['producto']->nombre ?? 'el producto');
+            $unidad = (string) ($linea['producto']->unidad ?? 'pza');
+
+            if ($disponible < 1) {
+                self::$errores[] = "El producto «{$nombre}» no está disponible por el momento.";
+            } elseif ($cantidad > $disponible) {
+                self::$errores[] = "Solo puedes comprar {$disponible} {$unidad} de «{$nombre}»; pediste {$cantidad}.";
+            }
         }
         $comentarios = trim(mb_substr($comentarios, 0, 1000));
         if (self::$errores) {
@@ -220,27 +242,60 @@ class Pedido extends ModeloDB
      * Consultas del cliente
      * ---------------------------------------------------------------- */
 
-    /** @return array{pedidos: Pedido[], total: int, paginas: int} */
-    public static function delCliente(int $clienteId, int $pagina = 1): array
+    /**
+     * Pedidos del cliente con el filtro de las pestañas de «Mis pedidos».
+     *
+     * @return array{pedidos: Pedido[], total: int, paginas: int, pagina: int, filtro: string, conteos: array<string, int>}
+     */
+    public static function delCliente(int $clienteId, int $pagina = 1, string $filtro = 'todos'): array
     {
         $empresa = empresaId();
-        $total = (int) (static::fila(
-            'SELECT COUNT(*) AS n FROM pedidos WHERE cliente_id = ? AND empresa_id = ?',
+        $filtro = isset(self::FILTROS[$filtro]) ? $filtro : 'todos';
+
+        // Los conteos de las cuatro pestañas salen de una sola consulta.
+        $conteosFila = static::fila(
+            "SELECT COUNT(*) AS todos,
+                    COALESCE(SUM(p.estado = 'cancelado'), 0) AS cancelados,
+                    COALESCE(SUM(p.estado <> 'cancelado'
+                                 AND v.entrega_estado LIKE 'entregado%'), 0) AS entregados,
+                    COALESCE(SUM(p.estado IN ('pendiente', 'cotizado', 'vendido')
+                                 AND (v.entrega_estado IS NULL OR v.entrega_estado NOT LIKE 'entregado%')), 0) AS en_proceso
+               FROM pedidos p
+               LEFT JOIN ventas v ON v.id = p.venta_id
+              WHERE p.cliente_id = ? AND p.empresa_id = ?",
             'ii',
             [$clienteId, $empresa]
-        )['n'] ?? 0);
+        ) ?? [];
 
+        $conteos = [
+            'todos' => (int) ($conteosFila['todos'] ?? 0),
+            'entregados' => (int) ($conteosFila['entregados'] ?? 0),
+            'en-proceso' => (int) ($conteosFila['en_proceso'] ?? 0),
+            'cancelados' => (int) ($conteosFila['cancelados'] ?? 0),
+        ];
+
+        $condicion = match ($filtro) {
+            'entregados' => "p.estado <> 'cancelado' AND v.entrega_estado LIKE 'entregado%'",
+            'en-proceso' => "p.estado IN ('pendiente', 'cotizado', 'vendido')
+                             AND (v.entrega_estado IS NULL OR v.entrega_estado NOT LIKE 'entregado%')",
+            'cancelados' => "p.estado = 'cancelado'",
+            default => '1 = 1',
+        };
+
+        $total = $conteos[$filtro];
         $paginas = max(1, (int) ceil($total / self::POR_PAGINA));
         $pagina = min(max(1, $pagina), $paginas);
         $desde = ($pagina - 1) * self::POR_PAGINA;
         $limite = self::POR_PAGINA;
 
         $filas = static::filas(
-            'SELECT p.*, (SELECT COUNT(*) FROM pedido_detalles d WHERE d.pedido_id = p.id) AS renglones
+            "SELECT p.*, v.entrega_estado, v.entrega_fecha,
+                    (SELECT COUNT(*) FROM pedido_detalles d WHERE d.pedido_id = p.id) AS renglones
                FROM pedidos p
-              WHERE p.cliente_id = ? AND p.empresa_id = ?
+               LEFT JOIN ventas v ON v.id = p.venta_id
+              WHERE p.cliente_id = ? AND p.empresa_id = ? AND {$condicion}
               ORDER BY p.creado_en DESC, p.id DESC
-              LIMIT ? OFFSET ?',
+              LIMIT ? OFFSET ?",
             'iiii',
             [$clienteId, $empresa, $limite, $desde]
         );
@@ -250,13 +305,18 @@ class Pedido extends ModeloDB
             'total' => $total,
             'paginas' => $paginas,
             'pagina' => $pagina,
+            'filtro' => $filtro,
+            'conteos' => $conteos,
         ];
     }
 
     public static function buscar(int $id, int $clienteId): ?self
     {
         $fila = static::fila(
-            'SELECT * FROM pedidos WHERE id = ? AND cliente_id = ? AND empresa_id = ?',
+            'SELECT p.*, v.entrega_estado, v.entrega_fecha
+               FROM pedidos p
+               LEFT JOIN ventas v ON v.id = p.venta_id
+              WHERE p.id = ? AND p.cliente_id = ? AND p.empresa_id = ?',
             'iii',
             [$id, $clienteId, empresaId()]
         );
@@ -268,7 +328,7 @@ class Pedido extends ModeloDB
     {
         return static::filas(
             'SELECT d.producto_id, d.cantidad, d.precio_unitario, d.descuento_pct, d.subtotal,
-                    pr.nombre, pr.sku, pr.unidad
+                    pr.nombre, pr.sku, pr.unidad, pr.imagen
                FROM pedido_detalles d
                JOIN productos pr ON pr.id = d.producto_id
               WHERE d.pedido_id = ?
@@ -349,8 +409,16 @@ class Pedido extends ModeloDB
         ) !== null;
     }
 
+    public function entregado(): bool
+    {
+        return str_starts_with((string) $this->entrega_estado, 'entregado');
+    }
+
     public function etiquetaEstado(): string
     {
+        if ($this->entregado()) {
+            return 'Entregado';
+        }
         return self::ESTADOS[$this->estado] ?? ucfirst($this->estado);
     }
 

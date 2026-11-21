@@ -19,7 +19,8 @@ class CuentaController
     public static function pedidos(Router $router): void
     {
         $cliente = soloCliente();
-        $lista = Pedido::delCliente($cliente->id, (int) ($_GET['pagina'] ?? 1));
+        $filtro = (string) ($_GET['filtro'] ?? 'todos');
+        $lista = Pedido::delCliente($cliente->id, (int) ($_GET['pagina'] ?? 1), $filtro);
 
         $router->render('cuenta/pedidos', [
             'titulo' => 'Mis pedidos',

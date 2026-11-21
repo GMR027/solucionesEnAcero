@@ -24,6 +24,8 @@
   table.renglones { width: 100%; border-collapse: collapse; margin-top: 6px; }
   .renglones th { background: #1d2228; color: #fff; text-align: left; padding: 7px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
   .renglones td { padding: 7px 8px; border-bottom: 1px solid #e3e6ea; }
+  .renglones td.miniatura { width: 34px; padding: 4px 6px; text-align: center; }
+  .renglones img { width: 28px; height: 28px; }
   .num { text-align: right; white-space: nowrap; }
   table.totales { width: 42%; margin-left: 58%; border-collapse: collapse; margin-top: 10px; }
   .totales td { padding: 5px 8px; }
@@ -58,11 +60,12 @@
     <h2>Productos</h2>
     <table class="renglones">
       <thead>
-        <tr><th>Código</th><th>Producto</th><th class="num">Cant.</th><th class="num">Precio</th><th class="num">Importe</th></tr>
+        <tr><th>Imagen</th><th>Código</th><th>Producto</th><th class="num">Cant.</th><th class="num">Precio</th><th class="num">Importe</th></tr>
       </thead>
       <tbody>
-        <?php foreach ($detalles as $d): ?>
+        <?php foreach ($detalles as $d): $miniatura = miniaturaProductoBase64($d['imagen'] ?? null); ?>
           <tr>
+            <td class="miniatura"><?php if ($miniatura !== ''): ?><img src="<?= $miniatura ?>" alt=""><?php else: ?>—<?php endif; ?></td>
             <td><?= s($d['sku']) ?></td>
             <td><?= s($d['nombre']) ?></td>
             <td class="num"><?= (int) $d['cantidad'] ?> <?= s($d['unidad']) ?></td>

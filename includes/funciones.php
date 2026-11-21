@@ -105,3 +105,80 @@ function imagenCatalogo(?string $archivo): ?string
     $archivo = basename((string) $archivo);
     return $archivo !== '' ? '/img/catalogo/' . rawurlencode($archivo) : null;
 }
+
+/**
+ * Miniatura de un producto en base64 para los PDF (dompdf no sale a Internet).
+ *
+ * Primero busca la version _mini en la cache del proxy /img/catalogo; si no
+ * existe, la pide al servicio interno de cotizaciones y la guarda. Si tampoco
+ * hay miniatura, usa la imagen completa. Devuelve '' si no hay imagen valida.
+ */
+function miniaturaProductoBase64(?string $archivo): string
+{
+    $archivo = basename(trim((string) $archivo));
+    if ($archivo === '' || str_contains($archivo, '..')) {
+        return '';
+    }
+
+    static $sinServicio = false;
+
+    $mini = preg_replace('/\.([a-z0-9]+)$/i', '_mini.$1', $archivo);
+    $candidatos = array_values(array_unique(array_filter([(string) $mini, $archivo])));
+    $dir = sys_get_temp_dir() . '/sea-img';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+
+    foreach ($candidatos as $nombre) {
+        $ruta = $dir . '/' . $nombre;
+        $bytes = null;
+
+        if (is_file($ruta)) {
+            $bytes = @file_get_contents($ruta);
+        } elseif (!$sinServicio) {
+            $base = rtrim((string) env('COTIZACIONES_URL', ''), '/');
+            if ($base === '') {
+                continue;
+            }
+
+            $curl = curl_init($base . '/public/image/' . rawurlencode($nombre));
+            curl_setopt_array($curl, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_MAXFILESIZE => 8 * 1024 * 1024,
+            ]);
+            $descarga = curl_exec($curl);
+            $codigo = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+            curl_close($curl);
+
+            if (!is_string($descarga) || $codigo === 0) {
+                $sinServicio = true; // El servicio interno no responde: no reintentar 60 veces.
+                continue;
+            }
+            if ($codigo !== 200 || strlen($descarga) > 8 * 1024 * 1024) {
+                continue;
+            }
+
+            $bytes = $descarga;
+            $temporal = $ruta . '.' . bin2hex(random_bytes(4)) . '.tmp';
+            if (@file_put_contents($temporal, $bytes) !== false) {
+                @rename($temporal, $ruta);
+            }
+        }
+
+        if (!is_string($bytes) || $bytes === '') {
+            continue;
+        }
+
+        $tipo = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
+        if (!in_array($tipo, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            continue;
+        }
+
+        return 'data:' . $tipo . ';base64,' . base64_encode($bytes);
+    }
+
+    return '';
+}

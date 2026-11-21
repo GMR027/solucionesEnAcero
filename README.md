@@ -54,7 +54,8 @@ El catalogo publico se lee de la BD de **cotizaciones** (migracion 053) y se adm
 - **Imagenes**: `/img/catalogo/<archivo>` las pide al servicio interno de cotizaciones, solo si pertenecen a
   productos activos de la empresa, a sus categorias o a sus distribuidores publicados, y las guarda en cache en el pod (cache del navegador de 1 año).
 - Si la BD no responde, el inicio sigue funcionando y el catalogo y los distribuidores muestran un aviso.
-- Precio, costo y existencias nunca se leen en el catalogo publico (solo el portal muestra el precio de lista).
+- Precio, costo y existencias nunca se leen en el catalogo publico. El portal muestra el precio de lista y lee
+  la existencia **solo para validar** que el cliente no pida mas de lo disponible; nunca muestra la cantidad.
 
 **Carga inicial de imagenes** de uso y portadas (las que tenia el sitio estatico), una vez por ambiente:
 `recursos/imagenes-web/` trae las imagenes y `mapa.txt`. En el cluster:
@@ -74,6 +75,13 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
 - **Acceso:** `clientes.email` + `clientes.portal_contrasena` (bcrypt). El administrador da el acceso desde cotizaciones.
 - **Pedidos:** se insertan en `pedidos`/`pedido_detalles` con `origen='portal'`, `estado='pendiente'`, precio de lista
   e importes iguales a `Cotizaciones::calcular`. El administrador los cotiza/vende desde `/admin/pedidos`.
+- **Existencias:** el portal limita cada producto a `productos.stock` y rechaza en el servidor cualquier cantidad
+  mayor. Los productos agotados se atenúan y sus controles se deshabilitan; la cantidad disponible solo aparece
+  en la alerta cuando se intenta exceder. El inventario no se descuenta hasta que el administrador marca el pedido
+  como venta.
+- **Filtros:** `/mi-cuenta/pedidos` tiene las pestañas Todos, Entregados, En proceso y Cancelados, con conteos,
+  los pedidos más recientes primero y 10 por página.
+- **PDF:** incluye una miniatura del producto antes del código, embebida en base64.
 - **Galeria de inicio:** acordeon con la primera foto de cada una de las ultimas 10 entregas de las ventas
   vigentes de `EMPRESA_ID` (`Model\Galeria`;
   requiere `SELECT (empresa_id)` sobre `ventas`). Si no hay fotos, la seccion no se muestra. Solo se sirven
@@ -86,7 +94,8 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
 Configuracion (`includes/.env`, ver `includes/.env.example`):
 
 1. En cotizaciones: `PORTAL_DB_PASSWORD=... scripts/crear_usuario_portal.sh` crea el usuario MySQL
-   `portal_soluciones` con permisos por columna (sin costos, stock ni datos internos).
+   `portal_soluciones` con permisos por columna (sin costos ni datos internos; lee `stock` solo para validar
+   cantidades). Si el usuario ya existia, hay que volver a ejecutarlo o darle `SELECT (stock)` en `productos`.
 2. Generar el secreto compartido (`openssl rand -hex 32`) y ponerlo en ambos lados:
    `PORTAL_FOTOS_SECRETO` aqui y `secrets.portalFotosSecreto` en el Helm de cotizaciones.
 3. `DB_*` con ese usuario, `EMPRESA_ID=1` y `COTIZACIONES_URL`
