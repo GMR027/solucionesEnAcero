@@ -2,6 +2,7 @@
 /** @var \Model\Pedido $pedido */
 /** @var array $detalles */
 /** @var string $logo */
+$entrega = \Model\Pedido::desglosarEntrega($pedido->comentarios);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -56,6 +57,14 @@
     <div><strong><?= s(cliente()['nombre'] ?? '') ?></strong></div>
   </div>
 
+  <?php if ($entrega['ubicacion'] || $entrega['sucursal']): ?>
+    <div class="bloque">
+      <h2>Entrega</h2>
+      <?php if ($entrega['ubicacion']): ?><div><strong>Ubicación:</strong> <?= s($entrega['ubicacion']) ?></div><?php endif; ?>
+      <?php if ($entrega['sucursal']): ?><div><strong>Sucursal:</strong> <?= s($entrega['sucursal']) ?></div><?php endif; ?>
+    </div>
+  <?php endif; ?>
+
   <div class="bloque">
     <h2>Productos</h2>
     <table class="renglones">
@@ -84,8 +93,8 @@
     </table>
   </div>
 
-  <?php if ($pedido->comentarios): ?>
-    <div class="nota"><strong>Comentarios:</strong> <?= nl2br(s($pedido->comentarios)) ?></div>
+  <?php if ($entrega['comentarios']): ?>
+    <div class="nota"><strong>Comentarios:</strong> <?= nl2br(s($entrega['comentarios'])) ?></div>
   <?php endif; ?>
   <?php if ($pedido->condiciones_envio): ?>
     <div class="bloque"><h2>Condiciones de envío</h2><div><?= nl2br(s($pedido->condiciones_envio)) ?></div></div>

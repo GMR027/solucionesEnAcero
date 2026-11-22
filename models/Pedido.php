@@ -18,6 +18,19 @@ class Pedido extends ModeloDB
     public const MAX_CANTIDAD = 9999;
     public const MAX_RENGLONES = 60;
     public const POR_PAGINA = 10;
+    public const MAX_SUCURSAL = 150;
+    public const MAX_COMENTARIOS = 1000;
+
+    public const UBICACIONES = [
+        'La Paz',
+        'Loreto',
+        'Ciudad Constitución',
+        'Todos Santos',
+        'Cabo San Lucas',
+        'San José del Cabo',
+        'Otro',
+    ];
+    public const UBICACION_POR_DEFECTO = 'La Paz';
 
     public const ESTADOS = [
         'pendiente' => 'Pendiente',
@@ -145,9 +158,81 @@ class Pedido extends ModeloDB
         return $lineas;
     }
 
-    /** Crea el pedido. Devuelve el id o null (ver errores()). */
-    public static function crear(Cliente $cliente, array $lineas, string $comentarios): ?int
+    /** Devuelve la ubicación si es válida; si no, la de por defecto. */
+    public static function normalizarUbicacion(string $ubicacion): string
     {
+        $ubicacion = trim($ubicacion);
+        return in_array($ubicacion, self::UBICACIONES, true) ? $ubicacion : self::UBICACION_POR_DEFECTO;
+    }
+
+    /**
+     * Antepone los datos de entrega a los comentarios del pedido.
+     *
+     * El bloque tiene un formato fijo para poder precargarlo al repetir el
+     * pedido y para que el panel de cotizaciones lo muestre en los comentarios.
+     */
+    public static function componerEntrega(string $comentarios, string $sucursal, string $ubicacion): string
+    {
+        $sucursal = trim(preg_replace('/\s+/u', ' ', $sucursal) ?? '');
+        $sucursal = mb_substr($sucursal, 0, self::MAX_SUCURSAL);
+        $ubicacion = self::normalizarUbicacion($ubicacion);
+
+        $lineas = ['Datos de entrega:', 'Ubicación: ' . $ubicacion];
+        if ($sucursal !== '') {
+            $lineas[] = 'Sucursal: ' . $sucursal;
+        }
+
+        $comentarios = trim($comentarios);
+        return trim(implode("\n", $lineas) . ($comentarios !== '' ? "\n\n" . $comentarios : ''));
+    }
+
+    /**
+     * Separa el bloque de entrega de los comentarios libres. Si el pedido no
+     * trae el bloque (pedidos viejos o capturados por el admin), devuelve todo
+     * el texto como comentarios.
+     *
+     * @return array{ubicacion: ?string, sucursal: ?string, comentarios: string}
+     */
+    public static function desglosarEntrega(?string $comentarios): array
+    {
+        $texto = trim((string) $comentarios);
+        $lineas = preg_split('/\R/u', $texto) ?: [];
+
+        if (($lineas[0] ?? '') !== 'Datos de entrega:') {
+            return ['ubicacion' => null, 'sucursal' => null, 'comentarios' => $texto];
+        }
+
+        $i = 1;
+        $ubicacion = null;
+        $sucursal = null;
+
+        if (isset($lineas[$i]) && preg_match('/^Ubicación:\s*(.+)$/u', $lineas[$i], $coincidencia)) {
+            $ubicacion = trim($coincidencia[1]);
+            $i++;
+        }
+        if (isset($lineas[$i]) && preg_match('/^Sucursal:\s*(.+)$/u', $lineas[$i], $coincidencia)) {
+            $sucursal = trim($coincidencia[1]);
+            $i++;
+        }
+        while (isset($lineas[$i]) && trim($lineas[$i]) === '') {
+            $i++;
+        }
+
+        return [
+            'ubicacion' => ($ubicacion ?? '') !== '' ? $ubicacion : null,
+            'sucursal' => ($sucursal ?? '') !== '' ? $sucursal : null,
+            'comentarios' => trim(implode("\n", array_slice($lineas, $i))),
+        ];
+    }
+
+    /** Crea el pedido. Devuelve el id o null (ver errores()). */
+    public static function crear(
+        Cliente $cliente,
+        array $lineas,
+        string $comentarios,
+        string $sucursal = '',
+        string $ubicacion = self::UBICACION_POR_DEFECTO
+    ): ?int {
         self::$errores = [];
 
         if (!$lineas) {
@@ -168,7 +253,8 @@ class Pedido extends ModeloDB
                 self::$errores[] = "Solo puedes comprar {$disponible} {$unidad} de «{$nombre}»; pediste {$cantidad}.";
             }
         }
-        $comentarios = trim(mb_substr($comentarios, 0, 1000));
+        $comentarios = trim(mb_substr($comentarios, 0, self::MAX_COMENTARIOS));
+        $comentarios = self::componerEntrega($comentarios, $sucursal, $ubicacion);
         if (self::$errores) {
             return null;
         }

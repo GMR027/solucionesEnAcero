@@ -61,8 +61,21 @@ include __DIR__ . '/../templates/cuenta-header.php';
           <div class="resumen__total"><dt>Total</dt><dd data-total>$0.00</dd></div>
         </dl>
         <div class="campo">
+          <label class="campo__etiqueta" for="sucursal">Sucursal de entrega (opcional)</label>
+          <input class="campo__control" type="text" id="sucursal" name="sucursal" maxlength="<?= \Model\Pedido::MAX_SUCURSAL ?>"
+                 value="<?= s($sucursal) ?>" placeholder="¿Se entregará en alguna sucursal en específico? Ej. Sucursal Centro">
+        </div>
+        <div class="campo">
+          <label class="campo__etiqueta" for="ubicacion">Ubicación de entrega</label>
+          <select class="campo__control" id="ubicacion" name="ubicacion">
+            <?php foreach (\Model\Pedido::UBICACIONES as $opcion): ?>
+              <option value="<?= s($opcion) ?>" <?= $ubicacion === $opcion ? 'selected' : '' ?>><?= s($opcion) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="campo">
           <label class="campo__etiqueta" for="comentarios">Comentarios (opcional)</label>
-          <textarea class="campo__control" id="comentarios" name="comentarios" rows="3" maxlength="1000" placeholder="Lugar de entrega, horario, referencia de obra…"><?= s($comentarios) ?></textarea>
+          <textarea class="campo__control" id="comentarios" name="comentarios" rows="3" maxlength="<?= \Model\Pedido::MAX_COMENTARIOS ?>" placeholder="Horario, referencia de obra…"><?= s($comentarios) ?></textarea>
         </div>
         <button class="boton boton--primario boton--bloque" type="submit" data-enviar>Enviar pedido <?= icono('flecha') ?></button>
         <p class="resumen__nota">Importes estimados con precio de lista. El total final se confirma al cotizar.</p>

@@ -18,6 +18,7 @@ $entregas = [
     'entregado_con_incidencias' => 'Entregado con incidencias',
     'entregado_incidencias_resueltas' => 'Entregado (incidencias resueltas)',
 ];
+$entrega = \Model\Pedido::desglosarEntrega($pedido->comentarios);
 
 $tituloCuenta = "Pedido {$pedido->folio}";
 $subtituloCuenta = 'Realizado el ' . s(fecha($pedido->fecha)) . ($pedido->origen === 'admin' ? ' · capturado por nuestro equipo' : '');
@@ -86,13 +87,15 @@ include __DIR__ . '/../templates/cuenta-header.php';
             <div><dt>Estado</dt><dd><?php include __DIR__ . '/../templates/insignia-estado.php'; ?></dd></div>
             <div><dt>Folio</dt><dd><?= s($pedido->folio) ?></dd></div>
             <div><dt>Fecha</dt><dd><?= s(fecha($pedido->fecha)) ?></dd></div>
+            <?php if ($entrega['ubicacion']): ?><div><dt>Ubicación de entrega</dt><dd><?= s($entrega['ubicacion']) ?></dd></div><?php endif; ?>
+            <?php if ($entrega['sucursal']): ?><div><dt>Sucursal de entrega</dt><dd><?= s($entrega['sucursal']) ?></dd></div><?php endif; ?>
             <?php if ($venta): ?>
               <div><dt>Venta</dt><dd><?= s($venta['folio']) ?></dd></div>
               <div><dt>Entrega</dt><dd><?= s($entregas[$venta['entrega_estado'] ?? ''] ?? 'Por programar') ?><?= !empty($venta['entrega_fecha']) ? ' · ' . s(fecha($venta['entrega_fecha'])) : '' ?></dd></div>
             <?php endif; ?>
           </dl>
-          <?php if ($pedido->comentarios): ?>
-            <p class="detalle-pedido__comentarios"><strong>Tus comentarios:</strong><br><?= nl2br(s($pedido->comentarios)) ?></p>
+          <?php if ($entrega['comentarios']): ?>
+            <p class="detalle-pedido__comentarios"><strong>Tus comentarios:</strong><br><?= nl2br(s($entrega['comentarios'])) ?></p>
           <?php endif; ?>
         </div>
 

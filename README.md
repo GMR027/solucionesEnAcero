@@ -81,6 +81,11 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
   como venta.
 - **Filtros:** `/mi-cuenta/pedidos` tiene las pestañas Todos, Entregados, En proceso y Cancelados, con conteos,
   los pedidos más recientes primero y 10 por página.
+- **Datos de entrega:** el formulario pide una sucursal opcional y la ubicación de entrega (La Paz por defecto;
+  Loreto, Ciudad Constitución, Todos Santos, Cabo San Lucas, San José del Cabo u Otro). Se guardan al inicio de
+  `pedidos.comentarios` con el bloque `Datos de entrega:` (sin migración); el detalle y el PDF del portal los
+  muestran por separado y el panel de cotizaciones los ve dentro de los comentarios. Al repetir un pedido se
+  precargan ubicación y sucursal.
 - **PDF:** incluye una miniatura del producto antes del código, embebida en base64.
 - **Galeria de inicio:** acordeon con la primera foto de cada una de las ultimas 10 entregas de las ventas
   vigentes de `EMPRESA_ID` (`Model\Galeria`;

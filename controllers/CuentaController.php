@@ -36,15 +36,19 @@ class CuentaController
         $disponibles = ProductoVenta::disponibles();
         $cantidades = [];
         $comentarios = '';
+        $sucursal = '';
+        $ubicacion = Pedido::UBICACION_POR_DEFECTO;
         $errores = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             verificarCsrf();
             $cantidades = array_map('intval', (array) ($_POST['cantidad'] ?? []));
             $comentarios = (string) ($_POST['comentarios'] ?? '');
+            $sucursal = (string) ($_POST['sucursal'] ?? '');
+            $ubicacion = Pedido::normalizarUbicacion((string) ($_POST['ubicacion'] ?? ''));
             $lineas = Pedido::lineasDesdeFormulario($cantidades, $disponibles);
 
-            $id = Pedido::crear($cliente, $lineas, $comentarios);
+            $id = Pedido::crear($cliente, $lineas, $comentarios, $sucursal, $ubicacion);
             if ($id) {
                 $pedido = Pedido::buscar($id, $cliente->id);
                 flash('exito', "Recibimos tu pedido {$pedido->folio}. Te contactaremos para confirmarlo.");
@@ -55,6 +59,9 @@ class CuentaController
             $anterior = Pedido::buscar((int) $_GET['desde'], $cliente->id);
             if ($anterior) {
                 $cantidades = $anterior->cantidades();
+                $entrega = Pedido::desglosarEntrega($anterior->comentarios);
+                $sucursal = $entrega['sucursal'] ?? '';
+                $ubicacion = Pedido::normalizarUbicacion($entrega['ubicacion'] ?? '');
                 $omitidos = count(array_diff_key($cantidades, $disponibles));
                 if ($omitidos) {
                     $errores[] = "{$omitidos} producto(s) del pedido {$anterior->folio} ya no están disponibles y se omitieron.";
@@ -70,6 +77,8 @@ class CuentaController
             'grupos' => ProductoVenta::porCategoria(),
             'cantidades' => array_intersect_key($cantidades, $disponibles),
             'comentarios' => $comentarios,
+            'sucursal' => $sucursal,
+            'ubicacion' => $ubicacion,
             'errores' => $errores,
             'iva' => Pedido::IVA,
             'script' => ['pedido.js'],
