@@ -17,10 +17,10 @@ $urlPagina = static function (int $pagina) use ($filtroActivo): string {
     ]));
 };
 $textosVacio = [
-    'todos' => ['No tienes pedidos', 'Arma tu primer pedido con nuestro catálogo. Lo revisamos y te confirmamos por WhatsApp.'],
+    'pendientes' => ['No tienes pedidos pendientes por entregar', 'Aquí verás los pedidos que estamos revisando, cotizando o preparando para entrega.'],
     'entregados' => ['Aún no tienes pedidos entregados', 'Cuando recibas un pedido aparecerá en esta pestaña.'],
-    'en-proceso' => ['No tienes pedidos en proceso', 'Aquí verás los pedidos que estamos revisando, cotizando o preparando.'],
     'cancelados' => ['No tienes pedidos cancelados', 'Los pedidos que canceles aparecerán en esta pestaña.'],
+    'todos' => ['No tienes pedidos', 'Arma tu primer pedido con nuestro catálogo. Lo revisamos y te confirmamos por WhatsApp.'],
 ];
 [$vacioTitulo, $vacioTexto] = $textosVacio[$filtroActivo] ?? $textosVacio['todos'];
 include __DIR__ . '/../templates/cuenta-header.php';
@@ -70,9 +70,9 @@ include __DIR__ . '/../templates/cuenta-header.php';
           <?php foreach ($lista['pedidos'] as $pedido): ?>
             <a class="tabla-pedidos__fila" role="row" href="/mi-cuenta/pedidos/<?= $pedido->id ?>">
               <span role="cell" class="tabla-pedidos__folio"><?= s($pedido->folio) ?></span>
-              <span role="cell" data-etiqueta="Fecha"><?= s(fecha($pedido->fecha)) ?></span>
-              <span role="cell" data-etiqueta="Productos"><?= (int) $pedido->renglones ?></span>
-              <span role="cell"><?php include __DIR__ . '/../templates/insignia-estado.php'; ?></span>
+              <span role="cell" class="tabla-pedidos__fecha" data-etiqueta="Fecha"><?= s(fecha($pedido->fecha)) ?></span>
+              <span role="cell" class="tabla-pedidos__productos" data-etiqueta="Productos"><?= (int) $pedido->renglones ?></span>
+              <span role="cell" class="tabla-pedidos__estado"><?php include __DIR__ . '/../templates/insignia-estado.php'; ?></span>
               <span role="cell" class="a-la-derecha tabla-pedidos__total"><?= dinero($pedido->total) ?></span>
               <span role="cell" class="tabla-pedidos__ir"><?= icono('flecha') ?></span>
             </a>

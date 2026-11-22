@@ -40,10 +40,10 @@ class Pedido extends ModeloDB
     ];
 
     public const FILTROS = [
-        'todos' => 'Todos',
+        'pendientes' => 'Pendientes por entregar',
         'entregados' => 'Entregados',
-        'en-proceso' => 'En proceso',
         'cancelados' => 'Cancelados',
+        'todos' => 'Todos',
     ];
 
     public int $id = 0;
@@ -336,6 +336,7 @@ class Pedido extends ModeloDB
     public static function delCliente(int $clienteId, int $pagina = 1, string $filtro = 'todos'): array
     {
         $empresa = empresaId();
+        $filtro = $filtro === 'en-proceso' ? 'pendientes' : $filtro;
         $filtro = isset(self::FILTROS[$filtro]) ? $filtro : 'todos';
 
         // Los conteos de las cuatro pestañas salen de una sola consulta.
@@ -345,7 +346,7 @@ class Pedido extends ModeloDB
                     COALESCE(SUM(p.estado <> 'cancelado'
                                  AND v.entrega_estado LIKE 'entregado%'), 0) AS entregados,
                     COALESCE(SUM(p.estado IN ('pendiente', 'cotizado', 'vendido')
-                                 AND (v.entrega_estado IS NULL OR v.entrega_estado NOT LIKE 'entregado%')), 0) AS en_proceso
+                                 AND (v.entrega_estado IS NULL OR v.entrega_estado NOT LIKE 'entregado%')), 0) AS pendientes
                FROM pedidos p
                LEFT JOIN ventas v ON v.id = p.venta_id
               WHERE p.cliente_id = ? AND p.empresa_id = ?",
@@ -354,16 +355,16 @@ class Pedido extends ModeloDB
         ) ?? [];
 
         $conteos = [
-            'todos' => (int) ($conteosFila['todos'] ?? 0),
+            'pendientes' => (int) ($conteosFila['pendientes'] ?? 0),
             'entregados' => (int) ($conteosFila['entregados'] ?? 0),
-            'en-proceso' => (int) ($conteosFila['en_proceso'] ?? 0),
             'cancelados' => (int) ($conteosFila['cancelados'] ?? 0),
+            'todos' => (int) ($conteosFila['todos'] ?? 0),
         ];
 
         $condicion = match ($filtro) {
-            'entregados' => "p.estado <> 'cancelado' AND v.entrega_estado LIKE 'entregado%'",
-            'en-proceso' => "p.estado IN ('pendiente', 'cotizado', 'vendido')
+            'pendientes' => "p.estado IN ('pendiente', 'cotizado', 'vendido')
                              AND (v.entrega_estado IS NULL OR v.entrega_estado NOT LIKE 'entregado%')",
+            'entregados' => "p.estado <> 'cancelado' AND v.entrega_estado LIKE 'entregado%'",
             'cancelados' => "p.estado = 'cancelado'",
             default => '1 = 1',
         };

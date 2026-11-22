@@ -79,8 +79,9 @@ Usa la BD de **cotizaciones** (contrato en `cotizaciones/GUIA.md`, "Pedidos y po
   mayor. Los productos agotados se atenúan y sus controles se deshabilitan; la cantidad disponible solo aparece
   en la alerta cuando se intenta exceder. El inventario no se descuenta hasta que el administrador marca el pedido
   como venta.
-- **Filtros:** `/mi-cuenta/pedidos` tiene las pestañas Todos, Entregados, En proceso y Cancelados, con conteos,
-  los pedidos más recientes primero y 10 por página.
+- **Filtros:** `/mi-cuenta/pedidos` tiene las pestañas Pendientes por entregar, Entregados, Cancelados y Todos,
+  con conteos, los pedidos más recientes primero y 10 por página. Los enlaces viejos con `?filtro=en-proceso`
+  siguen funcionando y muestran los pendientes.
 - **Datos de entrega:** el formulario pide una sucursal opcional y la ubicación de entrega (La Paz por defecto;
   Loreto, Ciudad Constitución, Todos Santos, Cabo San Lucas, San José del Cabo u Otro). Se guardan al inicio de
   `pedidos.comentarios` con el bloque `Datos de entrega:` (sin migración); el detalle y el PDF del portal los

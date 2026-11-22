@@ -36,7 +36,7 @@ include __DIR__ . '/../templates/cuenta-header.php';
                   <span class="linea-pedido__sku"><?= s($producto->sku) ?></span>
                   <label class="linea-pedido__nombre" for="cant-<?= $producto->id ?>"><?= s($producto->nombre) ?></label>
                   <span class="linea-pedido__precio"><?= dinero($producto->precio) ?> / <?= s($producto->unidad) ?></span>
-                  <?php if ($agotado): ?><span class="linea-pedido__agotado">No disponible</span><?php endif; ?>
+                  <?php if ($agotado): ?><span class="linea-pedido__agotado">No disponible por el momento</span><?php endif; ?>
                 </div>
                 <div class="cantidad">
                   <button type="button" class="cantidad__boton" data-menos aria-label="Quitar uno de <?= s($producto->nombre) ?>" <?= $agotado ? 'disabled' : '' ?>><?= icono('menos') ?></button>
